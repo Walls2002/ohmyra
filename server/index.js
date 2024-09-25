@@ -15,12 +15,17 @@ const io = new Server(server, {
 });
 
 let waitingUsers = [];
+
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
 
   socket.on("find_chat", () => {
     console.log("conn");
-    waitingUsers.push(socket);
+
+    if (!waitingUsers.includes(socket)) {
+      waitingUsers.push(socket);
+    }
+
     if (waitingUsers.length >= 2) {
       const user1 = waitingUsers.shift();
       const user2 = waitingUsers.shift();
@@ -58,6 +63,9 @@ io.on("connection", (socket) => {
 
       user1.on("disconnect", handleDisconnect);
       user2.on("disconnect", handleDisconnect);
+    } else {
+      // io.emit("finding_user", true);
+      console.log("waiting for user");
     }
   });
 

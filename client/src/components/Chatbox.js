@@ -6,6 +6,7 @@ function ChatBox({ socket }) {
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
   const [connect, setConnect] = useState(false);
+
   const dateToday = new Date();
   const inputDiv = {
     position: "fixed",
@@ -76,15 +77,27 @@ function ChatBox({ socket }) {
             borderRadius: "20px",
           }}
         >
-          {messageList.map((msg, index) => (
-            <div key={index}>
-              <strong>{msg.author}:</strong> <span>{msg.message}</span>
-              <span style={{ fontSize: "small", color: "gray" }}>
-                {" "}
-                - {msg.date}
-              </span>
-            </div>
-          ))}
+          {messageList.map((msg, index) => {
+            let currentAuthor = msg.author;
+            return (
+              <div style={{ display: "flex" }} key={index}>
+                <p
+                  style={{
+                    backgroundColor: "#585d63",
+                    borderRadius: "10px",
+                    padding: "10px",
+                  }}
+                >
+                  {" "}
+                  <strong>{msg.author}:</strong> <span>{msg.message}</span>
+                  <span style={{ fontSize: "small", color: "gray" }}>
+                    {" "}
+                    - {msg.date}
+                  </span>
+                </p>
+              </div>
+            );
+          })}
         </div>
         <Container style={inputDiv}>
           <input
@@ -96,7 +109,7 @@ function ChatBox({ socket }) {
               backgroundColor: "transparent",
               paddingLeft: "20px",
               color: "#f5f5f5",
-              minWidth: "60%",
+              minWidth: "50%",
             }}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
