@@ -14,21 +14,58 @@ const io = new Server(server, {
   },
 });
 
+let waitingUsers = [];
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
 
-  socket.on("join_room", (data) => {
-    socket.join(data);
-    console.log(`User with ID ${socket.id} joined room ${data}`);
+  socket.on("find_chat", () => {
+    console.log("conn");
+    waitingUsers.push(socket);
+    if (waitingUsers.length >= 2) {
+      const user1 = waitingUsers.shift();
+      const user2 = waitingUsers.shift();
+
+      const room = `room-${user1.id}-${user2.id}`;
+      user1.join(room);
+      user2.join(room);
+      console.log(`Matched ${user1.id} with ${user2.id} in ${room}`);
+
+      io.to(room).emit("match", {
+        message: "You are matched!",
+        room,
+        conn: true,
+      });
+
+      // Handle message sending
+      const handleMessage = (data) => {
+        console.log(`User ${socket.id} sent:`, data);
+        io.to(room).emit("receive_message", { author: socket.id, ...data });
+      };
+
+      user1.on("send_message", handleMessage);
+      user2.on("send_message", handleMessage);
+
+      // Handle disconnection
+      const handleDisconnect = () => {
+        console.log(`User ${socket.id} disconnected`);
+        io.to(room).emit("user_disconnected", {
+          author: socket.id,
+          conn: false,
+        });
+        user1.disconnect();
+        user2.disconnect();
+      };
+
+      user1.on("disconnect", handleDisconnect);
+      user2.on("disconnect", handleDisconnect);
+    }
   });
 
-  socket.on("send_message", (data) => {
-    socket.to(data.room).emit("receive_message", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User Disconnected", socket.id);
-  });
+  // socket.on("disconnect", () => {
+  //   io.emit("user_disconnected", false);
+  //   console.log("User Disconnected", socket.id);
+  //   waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
+  // });
 });
 
 server.listen(3001, () => console.log("Server running"));

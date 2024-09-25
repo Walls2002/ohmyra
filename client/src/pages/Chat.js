@@ -8,16 +8,19 @@ function Chat() {
   const [name, setname] = useState("");
   const [room, setroom] = useState("");
 
-  const joinRoom = () => {
-    if (name !== "" && room !== "") {
-      socket.emit("join_room", room);
-    }
-  };
+  // const joinRoom = () => {
+  //   if (name !== "" && room !== "") {
+  //     socket.emit("join_room", room);
+  //   }
+  // };
+  // const joinChat = () => {
+  //   socket.emit("join_chat");
+  // };
 
   return (
     <Container>
       <div>
-        <input
+        {/* <input
           placeholder="Name"
           onChange={(event) => {
             setname(event.target.value);
@@ -28,11 +31,10 @@ function Chat() {
           onChange={(event) => {
             setroom(event.target.value);
           }}
-        />
-        <button onClick={joinRoom}>Join</button>
+        /> */}
       </div>
 
-      <ChatBox socket={socket} room={room} username={name} />
+      <ChatBox socket={socket} />
     </Container>
   );
 }
