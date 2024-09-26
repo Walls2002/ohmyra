@@ -20,8 +20,7 @@ io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
 
   socket.on("find_chat", () => {
-    console.log("conn");
-
+    io.to(socket.id).emit("disconnect_message", false);
     if (!waitingUsers.includes(socket)) {
       waitingUsers.push(socket);
     }
@@ -40,6 +39,7 @@ io.on("connection", (socket) => {
         room,
         conn: true,
       });
+      io.emit("finding_user", false);
 
       // Handle message sending
       const handleMessage = (data) => {
@@ -56,24 +56,25 @@ io.on("connection", (socket) => {
         io.to(room).emit("user_disconnected", {
           author: socket.id,
           conn: false,
+          disc: true,
         });
         user1.disconnect();
         user2.disconnect();
+        waitingUsers = waitingUsers.filter((user) => user.id !== user1.id);
       };
 
       user1.on("disconnect", handleDisconnect);
       user2.on("disconnect", handleDisconnect);
     } else {
-      // io.emit("finding_user", true);
+      io.to(socket.id).emit("finding_user", true);
       console.log("waiting for user");
     }
   });
 
-  // socket.on("disconnect", () => {
-  //   io.emit("user_disconnected", false);
-  //   console.log("User Disconnected", socket.id);
-  //   waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
-  // });
+  socket.on("disconnect", () => {
+    console.log("User Disconnected", socket.id);
+    waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
+  });
 });
 
 server.listen(3001, () => console.log("Server running"));

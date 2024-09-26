@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Container, InputGroup, Form, Button } from "react-bootstrap";
+import { Container, Button, Modal } from "react-bootstrap";
 import Title from "../components/Title";
+import { waitMessage } from "../utils/waitMessages";
 
 function ChatBox({ socket }) {
+  const [socketId, setSocketId] = useState(
+    sessionStorage.getItem("socketId") || null
+  );
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
   const [connect, setConnect] = useState(false);
+  const [show, setShow] = useState(false);
+  const [firstMessage, setFirstMessage] = useState(true);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const [findingUser, setFindingUser] = useState(false);
+  const [loadMessage] = useState(waitMessage());
+  const [disconnectedUser, setDisconnectedUser] = useState(false);
 
   const dateToday = new Date();
+
   const inputDiv = {
     position: "fixed",
     left: "50%",
@@ -20,9 +32,12 @@ function ChatBox({ socket }) {
     display: "flex",
     justifyContent: "space-between",
   };
+
   const findChat = () => {
+    setFirstMessage(false);
     socket.connect();
     socket.emit("find_chat");
+    setMessageList([]);
   };
 
   const sendMessage = () => {
@@ -39,30 +54,40 @@ function ChatBox({ socket }) {
   const disconnectChat = () => {
     socket.disconnect();
     setConnect(false);
+    handleClose();
+    setMessage("");
+    setDisconnectedUser(true);
   };
 
   useEffect(() => {
-    socket.on("match", (data) => {
-      console.log(data.message, " ", data.room);
-      setConnect(data.conn);
-    });
-
     const handleMessageReceive = (data) => {
       setMessageList((list) => [...list, data]);
     };
     const handleDisconnect = (data) => {
       setConnect(data.conn);
-      console.log("DISCONNECTED", connect);
+      setDisconnectedUser(data.disc);
+      setMessage("");
+    };
+    const handleConnect = () => {
+      setSocketId(socket.id); // Set the current socket ID
+      sessionStorage.setItem("socketId", socket.id); // Store it in session storage
     };
 
+    socket.on("match", (data) => {
+      console.log(data.message, " ", data.room);
+      setConnect(data.conn);
+    });
+    socket.on("connect", handleConnect);
     socket.on("receive_message", handleMessageReceive); // Listen for incoming messages
     socket.on("user_disconnected", handleDisconnect);
+    socket.on("finding_user", (data) => setFindingUser(data));
+    socket.on("disconnect_message", (data) => setDisconnectedUser(data));
 
     return () => {
       socket.off("receive_message", handleMessageReceive); // Cleanup listener
       socket.off("user_disconnected", handleDisconnect);
     };
-  }, [connect, socket]);
+  }, [connect, socket, findingUser]);
 
   return (
     <Container>
@@ -70,37 +95,136 @@ function ChatBox({ socket }) {
 
       <div className="py-5">
         <div
-          className="p-5 mb-4"
+          className="p-4"
           style={{
             backgroundColor: "lightgray",
             overflowY: "auto",
             borderRadius: "20px",
+            color: "#f5f5f5",
+            marginBottom: "100px",
           }}
         >
-          {messageList.map((msg, index) => {
-            let currentAuthor = msg.author;
-            return (
-              <div style={{ display: "flex" }} key={index}>
+          {firstMessage ? (
+            <div>
+              <div className="d-flex mb-4">
+                <img
+                  style={{ margin: "auto" }}
+                  src={`${process.env.PUBLIC_URL}/ohmyra_logo.png`}
+                  alt="logo"
+                  width={150}
+                />
+              </div>
+
+              <div className="text-center" style={{ color: "#2b3035" }}>
+                <h2 className="fw-bolder">Welcome to Ohmyra!</h2>
+                <p>
+                  We’re thrilled to have you here. Why not take a moment to dive
+                  into a fun conversation with a stranger? Connecting with new
+                  people can lead to exciting discoveries and unexpected
+                  friendships. So go ahead, say hello, and let the conversation
+                  begin!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+
+          {findingUser ? (
+            <div style={{ color: "#585d63" }}>{loadMessage}</div>
+          ) : (
+            <></>
+          )}
+          {connect ? (
+            <p
+              style={{ color: "#585d63", marginBottom: "40px" }}
+              className="text-center"
+            >
+              <span style={{ color: "#198754" }} className="fw-bold">
+                Success!
+              </span>{" "}
+              You are now connected to a random user. Dive into the conversation
+              and have fun!
+            </p>
+          ) : (
+            <></>
+          )}
+
+          {messageList.map((msg, index) =>
+            msg.author === socketId ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  paddingLeft: "30px",
+                }}
+                key={index}
+              >
                 <p
                   style={{
                     backgroundColor: "#585d63",
-                    borderRadius: "10px",
-                    padding: "10px",
+                    borderRadius: "20px",
+                    padding: "10px 25px",
+                    maxWidth: "350px",
+                    margin: 0,
+                    marginBottom: "10px",
                   }}
                 >
-                  {" "}
-                  <strong>{msg.author}:</strong> <span>{msg.message}</span>
-                  <span style={{ fontSize: "small", color: "gray" }}>
+                  <span style={{ wordBreak: "break-word" }}>{msg.message}</span>
+                  <span
+                    className="d-none d-md-flex"
+                    style={{ fontSize: "small", color: "gray" }}
+                  >
                     {" "}
-                    - {msg.date}
+                    {msg.date}
                   </span>
                 </p>
               </div>
-            );
-          })}
+            ) : (
+              <div
+                style={{ display: "flex", paddingRight: "30px" }}
+                key={index}
+              >
+                <p
+                  style={{
+                    backgroundColor: "#585d63",
+                    borderRadius: "20px",
+                    padding: "10px 25px",
+                    maxWidth: "350px",
+                    margin: 0,
+                    marginBottom: "10px",
+                  }}
+                >
+                  <span style={{ wordBreak: "break-word" }}>{msg.message}</span>
+                  <span
+                    className="d-none d-md-flex"
+                    style={{ fontSize: "small", color: "gray" }}
+                  >
+                    {" "}
+                    {msg.date}
+                  </span>
+                </p>
+              </div>
+            )
+          )}
+          {disconnectedUser ? (
+            <p
+              style={{ color: "#585d63", marginTop: "40px" }}
+              className="text-center"
+            >
+              The connection has been lost as one of the users has{" "}
+              <span style={{ color: "#dc3545" }} className="fw-bold">
+                disconnected
+              </span>
+              . You can start a new conversation anytime!
+            </p>
+          ) : (
+            <></>
+          )}
         </div>
         <Container style={inputDiv}>
-          <input
+          <textarea
+            rows={1}
             style={{
               width: "auto",
               outline: "none",
@@ -110,6 +234,8 @@ function ChatBox({ socket }) {
               paddingLeft: "20px",
               color: "#f5f5f5",
               minWidth: "50%",
+              resize: "none",
+              overflow: "hidden",
             }}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
@@ -119,7 +245,25 @@ function ChatBox({ socket }) {
           />
           {connect ? (
             <span>
-              <Button onClick={disconnectChat} variant="outline-danger">
+              <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                  <Modal.Title>End Chat</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  Are you sure you want to end the chat? This action will
+                  disconnect you from the conversation.
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={handleClose}>
+                    Close
+                  </Button>
+
+                  <Button variant="danger" onClick={disconnectChat}>
+                    End Chat
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+              <Button onClick={handleShow} variant="outline-danger">
                 End Chat
               </Button>{" "}
               <Button onClick={sendMessage} variant="light">
