@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
 
       // Handle message sending
       const handleMessage = (data) => {
-        console.log(`User ${socket.id} sent:`, data);
+        // console.log(`User ${socket.id} sent:`, data);
         io.to(room).emit("receive_message", { author: socket.id, ...data });
       };
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Button, Modal } from "react-bootstrap";
 import Title from "../components/Title";
 import { waitMessage } from "../utils/waitMessages";
+import ScrollToBottom from "react-scroll-to-bottom";
 
 function ChatBox({ socket }) {
   const [socketId, setSocketId] = useState(
@@ -27,7 +28,7 @@ function ChatBox({ socket }) {
     borderRadius: "10px",
     textAlign: "center",
     padding: "10px",
-    bottom: "40px",
+    bottom: "20px",
     backgroundColor: "#585d63",
     display: "flex",
     justifyContent: "space-between",
@@ -41,14 +42,16 @@ function ChatBox({ socket }) {
   };
 
   const sendMessage = () => {
+    console.log(messageList);
     if (message.trim() !== "") {
       const messageData = {
         author: socket.id,
         message,
-        date: dateToday.toUTCString(),
+        date: dateToday.toDateString() + " " + dateToday.toLocaleTimeString(),
       };
       socket.emit("send_message", messageData); // Emit message
       setMessage(""); // Clear input
+      window.scrollTo(0, document.body.scrollHeight);
     }
   };
   const disconnectChat = () => {
@@ -62,6 +65,7 @@ function ChatBox({ socket }) {
   useEffect(() => {
     const handleMessageReceive = (data) => {
       setMessageList((list) => [...list, data]);
+      window.scrollTo(0, document.body.scrollHeight);
     };
     const handleDisconnect = (data) => {
       setConnect(data.conn);
@@ -98,7 +102,7 @@ function ChatBox({ socket }) {
           className="p-4"
           style={{
             backgroundColor: "lightgray",
-            overflowY: "auto",
+
             borderRadius: "20px",
             color: "#f5f5f5",
             marginBottom: "100px",
@@ -157,17 +161,29 @@ function ChatBox({ socket }) {
                   display: "flex",
                   justifyContent: "flex-end",
                   paddingLeft: "30px",
+                  alignItems: "center",
+                  marginBottom: "10px",
                 }}
                 key={index}
               >
-                <p
+                <span
+                  className="d-block d-md-none"
+                  style={{
+                    fontSize: "9px",
+                    color: "gray",
+                    marginRight: "10px",
+                  }}
+                >
+                  {" "}
+                  {msg.date}
+                </span>
+                <div
                   style={{
                     backgroundColor: "#585d63",
                     borderRadius: "20px",
                     padding: "10px 25px",
                     maxWidth: "350px",
                     margin: 0,
-                    marginBottom: "10px",
                   }}
                 >
                   <span style={{ wordBreak: "break-word" }}>{msg.message}</span>
@@ -178,21 +194,25 @@ function ChatBox({ socket }) {
                     {" "}
                     {msg.date}
                   </span>
-                </p>
+                </div>
               </div>
             ) : (
               <div
-                style={{ display: "flex", paddingRight: "30px" }}
+                style={{
+                  display: "flex",
+                  paddingRight: "30px",
+                  marginBottom: "10px",
+                  alignItems: "center",
+                }}
                 key={index}
               >
-                <p
+                <div
                   style={{
                     backgroundColor: "#585d63",
                     borderRadius: "20px",
                     padding: "10px 25px",
                     maxWidth: "350px",
                     margin: 0,
-                    marginBottom: "10px",
                   }}
                 >
                   <span style={{ wordBreak: "break-word" }}>{msg.message}</span>
@@ -203,7 +223,18 @@ function ChatBox({ socket }) {
                     {" "}
                     {msg.date}
                   </span>
-                </p>
+                </div>
+                <span
+                  className="d-block d-md-none"
+                  style={{
+                    fontSize: "9px",
+                    color: "gray",
+                    marginLeft: "10px",
+                  }}
+                >
+                  {" "}
+                  {msg.date}
+                </span>
               </div>
             )
           )}
@@ -267,7 +298,7 @@ function ChatBox({ socket }) {
                 End Chat
               </Button>{" "}
               <Button onClick={sendMessage} variant="light">
-                Send
+                Send &#x27A4;
               </Button>{" "}
             </span>
           ) : (
