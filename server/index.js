@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.PROD_HOST,
+    origin: "https://ohmyra.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
