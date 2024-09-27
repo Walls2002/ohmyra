@@ -13,13 +13,16 @@ export default function NavBar() {
       sticky="top"
     >
       <Container>
-        <Navbar.Brand as={Link} to="/">
-          <img
-            src={`${process.env.PUBLIC_URL}/ohmyra_logo_wht.png`}
-            alt="logo"
-            height={40}
-          />
-        </Navbar.Brand>
+        <Nav.Link href="/Home">
+          <Navbar.Brand>
+            <img
+              src={`${process.env.PUBLIC_URL}/ohmyra_logo_wht.png`}
+              alt="logo"
+              height={40}
+            />
+          </Navbar.Brand>
+        </Nav.Link>
+
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">

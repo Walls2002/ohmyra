@@ -5,9 +5,6 @@ import { waitMessage } from "../utils/waitMessages";
 import ScrollToBottom from "react-scroll-to-bottom";
 
 function ChatBox({ socket }) {
-  const [socketId, setSocketId] = useState(
-    sessionStorage.getItem("socketId") || null
-  );
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
   const [connect, setConnect] = useState(false);
@@ -42,7 +39,6 @@ function ChatBox({ socket }) {
   };
 
   const sendMessage = () => {
-    console.log(messageList);
     if (message.trim() !== "") {
       const messageData = {
         author: socket.id,
@@ -72,16 +68,12 @@ function ChatBox({ socket }) {
       setDisconnectedUser(data.disc);
       setMessage("");
     };
-    const handleConnect = () => {
-      setSocketId(socket.id); // Set the current socket ID
-      sessionStorage.setItem("socketId", socket.id); // Store it in session storage
-    };
 
     socket.on("match", (data) => {
       console.log(data.message, " ", data.room);
       setConnect(data.conn);
     });
-    socket.on("connect", handleConnect);
+
     socket.on("receive_message", handleMessageReceive); // Listen for incoming messages
     socket.on("user_disconnected", handleDisconnect);
     socket.on("finding_user", (data) => setFindingUser(data));
@@ -92,7 +84,6 @@ function ChatBox({ socket }) {
       socket.off("user_disconnected", handleDisconnect);
     };
   }, [connect, socket, findingUser]);
-
   return (
     <Container>
       <Title title={"Chat | Ohmyra"} />
@@ -155,7 +146,7 @@ function ChatBox({ socket }) {
           )}
 
           {messageList.map((msg, index) =>
-            msg.author === socketId ? (
+            msg.author === socket.id ? (
               <div
                 style={{
                   display: "flex",

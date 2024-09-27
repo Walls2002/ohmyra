@@ -15,6 +15,7 @@ const io = new Server(server, {
 });
 
 let waitingUsers = [];
+let roomStored = [];
 
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
@@ -30,6 +31,7 @@ io.on("connection", (socket) => {
       const user2 = waitingUsers.shift();
 
       const room = `room-${user1.id}-${user2.id}`;
+
       user1.join(room);
       user2.join(room);
       console.log(`Matched ${user1.id} with ${user2.id} in ${room}`);
