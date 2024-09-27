@@ -7,9 +7,12 @@ app.use(cors());
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
+const LOCAL_HOST = "http://localhost:3000";
+const PROD_HOST = "https://ohmyra.vercel.app/";
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: PROD_HOST,
     methods: ["GET", "POST"],
   },
 });
@@ -79,4 +82,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3001, () => console.log("Server running"));
+server.listen("https://ohmyra-server.vercel.app/", () =>
+  console.log("Server running")
+);
