@@ -16,6 +16,9 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+app.get("/", (req, res) => {
+  res.send("Server is running");
+});
 
 let waitingUsers = [];
 let roomStored = [];
@@ -82,6 +85,4 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen("https://ohmyra-server.vercel.app", () =>
-  console.log("Server running")
-);
+server.listen(3001, () => console.log("Server running"));
