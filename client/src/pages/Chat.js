@@ -3,7 +3,9 @@ import io from "socket.io-client";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import ChatBox from "../components/Chatbox";
 
-const socket = io.connect("https://ohmyra-server.vercel.app");
+const socket = io.connect("https://ohmyra-server.vercel.app", {
+  transports: ["websocket", "polling"],
+});
 
 function Chat() {
   return (
