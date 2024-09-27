@@ -6,7 +6,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: process.env.PROD_HOST,
+    origin: "https://ohmyra.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   })
