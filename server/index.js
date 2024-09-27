@@ -2,11 +2,14 @@ const express = require("express");
 const app = express();
 const http = require("http");
 const cors = require("cors");
-const LOCAL_HOST = "http://localhost:3000";
-const PROD_HOST = "https://ohmyra.vercel.app";
+
 const { Server } = require("socket.io");
 app.use(
-  cors({ origin: LOCAL_HOST, methods: ["GET", "POST"], credentials: true })
+  cors({
+    origin: process.env.PROD_HOST,
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
 );
 
 app.get("/", (req, res) => {
@@ -16,7 +19,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: LOCAL_HOST,
+    origin: process.env.PROD_HOST,
     methods: ["GET", "POST"],
     credentials: true,
   },
