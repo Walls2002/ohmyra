@@ -1,8 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { Container, Button, Modal } from "react-bootstrap";
 import Title from "../components/Title";
 import { waitMessage } from "../utils/waitMessages";
-import ScrollToBottom from "react-scroll-to-bottom";
 
 function ChatBox({ socket }) {
   const [message, setMessage] = useState("");
@@ -15,8 +15,13 @@ function ChatBox({ socket }) {
   const [findingUser, setFindingUser] = useState(false);
   const [loadMessage] = useState(waitMessage());
   const [disconnectedUser, setDisconnectedUser] = useState(false);
+  const [socketIds, SetSocketIds] = useState([]);
 
   const dateToday = new Date();
+  let socketIdArray = [];
+  if (sessionStorage.getItem("socketIds")) {
+    socketIdArray = JSON.parse(sessionStorage.getItem("socketIds"));
+  }
 
   const inputDiv = {
     position: "fixed",
@@ -69,6 +74,15 @@ function ChatBox({ socket }) {
       setMessage("");
     };
 
+    socket.on("connect", () => {
+      if (socket.id) {
+        // Add new socket.id if it's defined
+        socketIdArray.push(socket.id);
+        sessionStorage.setItem("socketIds", JSON.stringify(socketIdArray));
+        SetSocketIds(socketIdArray);
+      }
+    });
+
     socket.on("match", (data) => {
       console.log(data.message, " ", data.room);
       setConnect(data.conn);
@@ -77,13 +91,15 @@ function ChatBox({ socket }) {
     socket.on("receive_message", handleMessageReceive); // Listen for incoming messages
     socket.on("user_disconnected", handleDisconnect);
     socket.on("finding_user", (data) => setFindingUser(data));
-    socket.on("disconnect_message", (data) => setDisconnectedUser(data));
+    socket.on("disconnect_message", (data) => {
+      setDisconnectedUser(data.disconMessage);
+    });
 
     return () => {
       socket.off("receive_message", handleMessageReceive); // Cleanup listener
       socket.off("user_disconnected", handleDisconnect);
     };
-  }, [connect, socket, findingUser]);
+  }, [connect, socket, findingUser, socketIdArray, socketIds]);
   return (
     <Container>
       <Title title={"Chat | Ohmyra"} />
@@ -146,7 +162,7 @@ function ChatBox({ socket }) {
           )}
 
           {messageList.map((msg, index) =>
-            msg.author === socket.id ? (
+            socketIds.includes(msg.author) ? (
               <div
                 style={{
                   display: "flex",
@@ -293,9 +309,11 @@ function ChatBox({ socket }) {
               </Button>{" "}
             </span>
           ) : (
-            <Button onClick={findChat} variant="dark">
-              Chat Someone
-            </Button>
+            <>
+              <Button disabled={findingUser} onClick={findChat} variant="dark">
+                {findingUser ? <>Looking for Someone...</> : <>Chat Someone</>}
+              </Button>
+            </>
           )}
         </Container>
       </div>

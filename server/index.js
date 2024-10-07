@@ -27,13 +27,16 @@ const io = new Server(server, {
 });
 
 let waitingUsers = [];
-let roomStored = [];
+let allSocketIds = [];
 
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
+  allSocketIds.push(socket.id);
 
   socket.on("find_chat", () => {
-    io.to(socket.id).emit("disconnect_message", false);
+    io.to(socket.id).emit("disconnect_message", {
+      disconMessage: false,
+    });
     if (!waitingUsers.includes(socket)) {
       waitingUsers.push(socket);
     }
