@@ -34,6 +34,8 @@ function ChatBox({ socket }) {
   };
 
   const findChat = () => {
+    setFindingUser(true);
+    setDisconnectedUser(false);
     setFirstMessage(false);
     socket.connect();
     socket.emit("find_chat");
