@@ -36,7 +36,6 @@ function ChatBox({ socket }) {
   };
 
   const findChat = () => {
-    setIsTyping("");
     setFindingUser(true);
     setDisconnectedUser(false);
     setFirstMessage(false);
@@ -88,6 +87,7 @@ function ChatBox({ socket }) {
       setDisconnectedUser(data.disc);
       setMessage("");
       window.scrollTo(0, document.body.scrollHeight);
+      setIsTyping("");
     };
     const handleTypingReceive = (data) => {
       setIsTyping("Stranger is typing...");
