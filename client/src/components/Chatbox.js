@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Container, Button, Modal } from "react-bootstrap";
+import { Container, Button, Modal, ButtonGroup } from "react-bootstrap";
 import Title from "../components/Title";
 import { waitMessage } from "../utils/waitMessages";
 
@@ -19,9 +19,6 @@ function ChatBox({ socket }) {
 
   const dateToday = new Date();
   let socketIdArray = [];
-  if (sessionStorage.getItem("socketIds")) {
-    socketIdArray = JSON.parse(sessionStorage.getItem("socketIds"));
-  }
 
   const inputDiv = {
     position: "fixed",
@@ -84,6 +81,13 @@ function ChatBox({ socket }) {
     });
 
     socket.on("match", (data) => {
+      if (socket.id) {
+        // Add new socket.id if it's defined
+        socketIdArray.push(socket.id);
+        sessionStorage.setItem("socketIds", JSON.stringify(socketIdArray));
+        SetSocketIds(socketIdArray);
+      }
+
       console.log(data.message, " ", data.room);
       setConnect(data.conn);
     });
@@ -104,7 +108,7 @@ function ChatBox({ socket }) {
     <Container>
       <Title title={"Chat | Ohmyra"} />
 
-      <div className="py-5">
+      <div className="py-5 ">
         <div
           className="p-4"
           style={{
@@ -215,11 +219,13 @@ function ChatBox({ socket }) {
               >
                 <div
                   style={{
-                    backgroundColor: "#585d63",
+                    backgroundColor: "whitesmoke",
                     borderRadius: "20px",
                     padding: "10px 25px",
                     maxWidth: "350px",
                     margin: 0,
+                    color: "#585d63",
+                    border: "1px solid #585d63",
                   }}
                 >
                   <span style={{ wordBreak: "break-word" }}>{msg.message}</span>
@@ -232,7 +238,7 @@ function ChatBox({ socket }) {
                   </span>
                 </div>
                 <span
-                  className="d-block d-md-none"
+                  className=" d-block  d-md-none"
                   style={{
                     fontSize: "9px",
                     color: "gray",
@@ -272,6 +278,7 @@ function ChatBox({ socket }) {
               paddingLeft: "20px",
               color: "#f5f5f5",
               minWidth: "50%",
+              padding: "10px",
               resize: "none",
               overflow: "hidden",
             }}
@@ -282,7 +289,7 @@ function ChatBox({ socket }) {
             placeholder="Say Something.."
           />
           {connect ? (
-            <span>
+            <span style={{ display: "flex", alignItems: "center" }}>
               <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
                   <Modal.Title>End Chat</Modal.Title>
@@ -301,12 +308,17 @@ function ChatBox({ socket }) {
                   </Button>
                 </Modal.Footer>
               </Modal>
-              <Button onClick={handleShow} variant="outline-danger">
-                End Chat
-              </Button>{" "}
-              <Button onClick={sendMessage} variant="light">
-                Send &#x27A4;
-              </Button>{" "}
+              <Container>
+                <ButtonGroup>
+                  <Button onClick={handleShow} variant="outline-danger">
+                    End Chat
+                  </Button>{" "}
+                  <Button onClick={sendMessage} variant="light">
+                    <span>Send &#x27A4;</span>
+                  </Button>{" "}
+                </ButtonGroup>
+                <br />
+              </Container>
             </span>
           ) : (
             <>
