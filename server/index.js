@@ -11,7 +11,7 @@ console.log(LOCAL_PORT, PROD_PORT);
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: "https://ohmyra.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://ohmyra.vercel.app",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -71,6 +71,15 @@ io.on("connection", (socket) => {
 
       user1.on("send_message", handleMessage);
       user2.on("send_message", handleMessage);
+
+      // Handle typing event
+      user1.on("typing", (data) => {
+        user2.emit("typing", { author: user1.id });
+      });
+
+      user2.on("typing", (data) => {
+        user1.emit("typing", { author: user2.id });
+      });
 
       // Handle disconnection
       const handleDisconnect = () => {

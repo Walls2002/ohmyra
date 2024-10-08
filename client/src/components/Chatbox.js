@@ -16,6 +16,8 @@ function ChatBox({ socket }) {
   const [loadMessage] = useState(waitMessage());
   const [disconnectedUser, setDisconnectedUser] = useState(false);
   const [socketIds, SetSocketIds] = useState([]);
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState("");
 
   const dateToday = new Date();
   let socketIdArray = [];
@@ -69,15 +71,25 @@ function ChatBox({ socket }) {
     setDisconnectedUser(true);
   };
 
+  const handleTyping = (e) => {
+    setMessage(e.target.value);
+    socket.emit("typing"); // Emit typing event when user types
+  };
+
   useEffect(() => {
     const handleMessageReceive = (data) => {
       setMessageList((list) => [...list, data]);
       window.scrollTo(0, document.body.scrollHeight);
+      setIsTyping("");
     };
     const handleDisconnect = (data) => {
       setConnect(data.conn);
       setDisconnectedUser(data.disc);
       setMessage("");
+      window.scrollTo(0, document.body.scrollHeight);
+    };
+    const handleTypingReceive = (data) => {
+      setIsTyping("Stranger is typing...");
     };
 
     socket.on("connect", () => {
@@ -103,6 +115,7 @@ function ChatBox({ socket }) {
 
     socket.on("receive_message", handleMessageReceive); // Listen for incoming messages
     socket.on("user_disconnected", handleDisconnect);
+    socket.on("typing", handleTypingReceive);
     socket.on("finding_user", (data) => setFindingUser(data));
     socket.on("disconnect_message", (data) => {
       setDisconnectedUser(data.disconMessage);
@@ -274,6 +287,12 @@ function ChatBox({ socket }) {
           ) : (
             <></>
           )}
+
+          {isTyping && (
+            <p style={{ color: "#585d63" }} className="text-center">
+              {isTyping}
+            </p>
+          )}
         </div>
         <Container style={inputDiv}>
           <textarea
@@ -292,7 +311,7 @@ function ChatBox({ socket }) {
               overflow: "hidden",
             }}
             value={message}
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={handleTyping}
             type="text"
             disabled={!connect}
             placeholder="Say Something.."
