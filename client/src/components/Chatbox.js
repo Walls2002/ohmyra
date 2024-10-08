@@ -107,6 +107,7 @@ function ChatBox({ socket }) {
         socketIdArray.push(socket.id);
         sessionStorage.setItem("socketIds", JSON.stringify(socketIdArray));
         SetSocketIds(socketIdArray);
+        setIsTyping("");
       }
 
       console.log(data.message, " ", data.room);
