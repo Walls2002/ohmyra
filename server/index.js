@@ -11,7 +11,7 @@ console.log(LOCAL_PORT, PROD_PORT);
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: `${PROD_PORT}`,
+    origin: "https://ohmyra.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: `${PROD_PORT}`,
+    origin: "https://ohmyra.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },

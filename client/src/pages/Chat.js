@@ -5,8 +5,8 @@ import ChatBox from "../components/Chatbox";
 
 const LOCAL_PORT = process.env.REACT_APP_LOCAL_PORT;
 const PROD_PORT = process.env.REACT_APP_PROD_HOST;
-console.log(LOCAL_PORT);
-const socket = io.connect(`${PROD_PORT}`);
+console.log(PROD_PORT);
+const socket = io.connect("https://ohmyra.onrender.com/");
 
 function Chat() {
   return (
