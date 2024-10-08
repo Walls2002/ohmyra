@@ -47,7 +47,14 @@ function ChatBox({ socket }) {
       const messageData = {
         author: socket.id,
         message,
-        date: dateToday.toDateString() + " " + dateToday.toLocaleTimeString(),
+        date:
+          dateToday.toDateString() +
+          " " +
+          dateToday.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
+          }),
       };
       socket.emit("send_message", messageData); // Emit message
       setMessage(""); // Clear input
