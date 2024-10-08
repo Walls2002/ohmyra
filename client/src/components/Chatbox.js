@@ -117,7 +117,10 @@ function ChatBox({ socket }) {
     socket.on("receive_message", handleMessageReceive); // Listen for incoming messages
     socket.on("user_disconnected", handleDisconnect);
     socket.on("typing", handleTypingReceive);
-    socket.on("finding_user", (data) => setFindingUser(data));
+    socket.on("finding_user", (data) => {
+      setFindingUser(data);
+      setIsTyping("");
+    });
     socket.on("disconnect_message", (data) => {
       setDisconnectedUser(data.disconMessage);
     });
