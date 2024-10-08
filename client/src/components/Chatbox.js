@@ -36,6 +36,7 @@ function ChatBox({ socket }) {
   };
 
   const findChat = () => {
+    setIsTyping("");
     setFindingUser(true);
     setDisconnectedUser(false);
     setFirstMessage(false);
@@ -119,7 +120,6 @@ function ChatBox({ socket }) {
     socket.on("typing", handleTypingReceive);
     socket.on("finding_user", (data) => {
       setFindingUser(data);
-      setIsTyping("");
     });
     socket.on("disconnect_message", (data) => {
       setDisconnectedUser(data.disconMessage);
