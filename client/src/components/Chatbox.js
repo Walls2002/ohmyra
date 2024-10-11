@@ -23,9 +23,9 @@ function ChatBox({ socket }) {
   let socketIdArray = [];
 
   const inputDiv = {
-    position: "fixed",
+    position: "sticky",
     left: "50%",
-    transform: "translateX(-50%)", // Example transformation
+
     borderRadius: "10px",
     textAlign: "center",
     padding: "10px",
@@ -91,6 +91,9 @@ function ChatBox({ socket }) {
     };
     const handleTypingReceive = (data) => {
       setIsTyping("Stranger is typing...");
+      setTimeout(() => {
+        setIsTyping("");
+      }, 4000);
     };
 
     socket.on("connect", () => {
@@ -128,13 +131,22 @@ function ChatBox({ socket }) {
     return () => {
       socket.off("receive_message", handleMessageReceive); // Cleanup listener
       socket.off("user_disconnected", handleDisconnect);
+      socket.on("typing", handleTypingReceive);
     };
   }, [connect, socket, findingUser, socketIdArray, socketIds]);
   return (
     <Container>
       <Title title={"Chat | Ohmyra"} />
 
-      <div className="py-5 ">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "90vh",
+          justifyContent: "space-between",
+        }}
+        className="pt-5"
+      >
         <div
           className="p-4"
           style={{
@@ -293,7 +305,10 @@ function ChatBox({ socket }) {
           )}
 
           {isTyping && (
-            <p style={{ color: "#585d63" }} className="text-center">
+            <p
+              style={{ color: "#585d63", fontWeight: "bolder" }}
+              className="text-center"
+            >
               {isTyping}
             </p>
           )}
@@ -322,7 +337,7 @@ function ChatBox({ socket }) {
           />
           {connect ? (
             <span style={{ display: "flex", alignItems: "center" }}>
-              <Modal show={show} onHide={handleClose}>
+              <Modal centered show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
                   <Modal.Title>End Chat</Modal.Title>
                 </Modal.Header>
@@ -343,10 +358,10 @@ function ChatBox({ socket }) {
               <Container>
                 <ButtonGroup>
                   <Button onClick={handleShow} variant="outline-danger">
-                    End Chat
+                    End
                   </Button>{" "}
                   <Button onClick={sendMessage} variant="light">
-                    <span>Send &#x27A4;</span>
+                    <span>Send</span>
                   </Button>{" "}
                 </ButtonGroup>
                 <br />
