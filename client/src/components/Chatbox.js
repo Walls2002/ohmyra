@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Button, Modal, ButtonGroup } from "react-bootstrap";
 import Title from "../components/Title";
 import { waitMessage } from "../utils/waitMessages";
-
+import toast, { Toaster } from "react-hot-toast";
 function ChatBox({ socket }) {
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
@@ -18,6 +18,7 @@ function ChatBox({ socket }) {
   const [socketIds, SetSocketIds] = useState([]);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   const dateToday = new Date();
   let socketIdArray = [];
@@ -108,6 +109,7 @@ function ChatBox({ socket }) {
     socket.on("match", (data) => {
       if (socket.id) {
         // Add new socket.id if it's defined
+        setShowToast(true);
         socketIdArray.push(socket.id);
         sessionStorage.setItem("socketIds", JSON.stringify(socketIdArray));
         SetSocketIds(socketIdArray);
@@ -128,16 +130,25 @@ function ChatBox({ socket }) {
       setDisconnectedUser(data.disconMessage);
     });
 
+    if (showToast) {
+      toast.success("Successfully connected to a stranger!", { time: 3500 });
+      setShowToast(false);
+    }
+
     return () => {
       socket.off("receive_message", handleMessageReceive); // Cleanup listener
       socket.off("user_disconnected", handleDisconnect);
       socket.on("typing", handleTypingReceive);
     };
   }, [connect, socket, findingUser, socketIdArray, socketIds]);
+
   return (
     <Container>
       <Title title={"Chat | Ohmyra"} />
 
+      <div>
+        <Toaster />
+      </div>
       <div
         style={{
           display: "flex",
@@ -315,6 +326,12 @@ function ChatBox({ socket }) {
         </div>
         <Container style={inputDiv}>
           <textarea
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
             rows={1}
             style={{
               width: "auto",
