@@ -6,7 +6,6 @@ const dotenv = require("dotenv");
 
 const LOCAL_PORT = dotenv.config().parsed.REACT_APP_LOCAL_PORT;
 const PROD_PORT = dotenv.config().parsed.REACT_APP_PROD_HOST;
-console.log(LOCAL_PORT, PROD_PORT);
 
 const { Server } = require("socket.io");
 app.use(
