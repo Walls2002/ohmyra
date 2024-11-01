@@ -1,7 +1,20 @@
+* {
+  margin: 0;
+  padding: 0;
+}
 body {
   background-color: #f5f5f5 !important;
 }
 input::placeholder {
   color: #f5f5f5;
   opacity: 0.7; /* Override the default opacity */
+}
+
+.hover-card:hover {
+  transition: 0.5s;
+  background-color: #212529;
+}
+.hover-card:hover .hover-title {
+  transition: 0.5s;
+  color: #f5f5f5 !important;
 }
