@@ -36,6 +36,9 @@ let allSocketIds = [];
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
   allSocketIds.push(socket.id);
+  socket.on("request_total_online_user", () => {
+    io.emit("total_online_user", { total_user: allSocketIds });
+  });
 
   socket.on("find_chat", () => {
     io.to(socket.id).emit("disconnect_message", {
@@ -91,6 +94,13 @@ io.on("connection", (socket) => {
         user1.disconnect();
         user2.disconnect();
         waitingUsers = waitingUsers.filter((user) => user.id !== user1.id);
+        waitingUsers = waitingUsers.filter((user) => user.id !== user2.id);
+        allSocketIds = allSocketIds.filter((user) => user !== user1.id);
+        allSocketIds = allSocketIds.filter((user) => user !== user2.id);
+
+        socket.on("request_total_online_user", () => {
+          io.emit("total_online_user", { total_user: allSocketIds });
+        });
       };
 
       user1.on("disconnect", handleDisconnect);
@@ -103,7 +113,15 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User Disconnected", socket.id);
+
     waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
+    allSocketIds = allSocketIds.filter((user) => user !== socket.id);
+
+    socket.on("request_total_online_user", () => {
+      io.emit("total_online_user", { total_user: allSocketIds });
+    });
+
+    console.log("WAITING USER:", waitingUsers);
   });
 });
 

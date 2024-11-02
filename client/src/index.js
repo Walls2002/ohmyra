@@ -3,10 +3,18 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
+import io from "socket.io-client";
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
+const LOCAL_PORT = process.env.REACT_APP_LOCAL_PORT;
+const PROD_PORT = process.env.REACT_APP_PROD_HOST;
+console.log(PROD_PORT);
+const socket = io.connect("https://ohmyra.onrender.com/");
+
 root.render(
   <React.StrictMode>
-    <App />
+    <App socket={socket} />
   </React.StrictMode>
 );
 

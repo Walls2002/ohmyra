@@ -4,15 +4,6 @@ import Title from "../components/Title";
 import { Link } from "react-router-dom";
 
 function Home() {
-  // const steps = [
-  //   {
-  //     step: "Step 1",
-  //     title: "Start Chatting",
-  //     message:
-  //       "Click the ‘Start’ button and get matched with a random stranger.",
-  //   },
-  // ];
-
   const [steps] = useState([
     {
       step: "Step 1",

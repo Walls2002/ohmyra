@@ -3,10 +3,10 @@ import React from "react";
 import NavBar from "./Navbar";
 import { Outlet } from "react-router-dom";
 
-function Layout() {
+function Layout({ socket }) {
   return (
     <div>
-      <NavBar />
+      <NavBar socket={socket} />
       <main>
         <Outlet /> {/* Renders the current page content */}
       </main>
