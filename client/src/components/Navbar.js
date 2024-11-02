@@ -4,7 +4,6 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 
 export default function NavBar({ socket }) {
-  console.log("your socket id :", socket.id);
   const [totalUser, SetTotalUser] = useState([]);
 
   // socket.on("total_online _user", (data) => {
@@ -16,7 +15,6 @@ export default function NavBar({ socket }) {
 
     const getTotalUser = (data) => {
       SetTotalUser(data.total_user);
-      console.log("length", data.total_user.length);
     };
 
     socket.on("total_online_user", getTotalUser);
