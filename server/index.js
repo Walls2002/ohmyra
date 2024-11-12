@@ -5,7 +5,6 @@ const cors = require("cors");
 
 const LOCAL_PORT = process.env.REACT_APP_LOCAL_PORT;
 const PROD_PORT = process.env.REACT_APP_PROD_HOST;
-console.log(PROD_PORT);
 
 const { Server } = require("socket.io");
 app.use(
