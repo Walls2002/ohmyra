@@ -10,7 +10,7 @@ console.log(PROD_PORT);
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: LOCAL_PORT,
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: LOCAL_PORT,
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   },
