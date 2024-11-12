@@ -6,11 +6,12 @@ const dotenv = require("dotenv");
 
 const LOCAL_PORT = dotenv.config().parsed.REACT_APP_LOCAL_PORT;
 const PROD_PORT = dotenv.config().parsed.REACT_APP_PROD_HOST;
+console.log(PROD_PORT);
 
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: "https://ohmyra.vercel.app",
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -23,7 +24,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://ohmyra.vercel.app",
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   },

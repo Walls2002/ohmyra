@@ -10,7 +10,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 const LOCAL_PORT = process.env.REACT_APP_LOCAL_PORT;
 const PROD_PORT = process.env.REACT_APP_PROD_HOST;
 console.log(PROD_PORT);
-const socket = io.connect("https://ohmyra.onrender.com/");
+const socket = io.connect(PROD_PORT);
 
 root.render(
   <React.StrictMode>
