@@ -4,14 +4,12 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import "./App.css";
-import { Analytics } from "@vercel/analytics/react";
 
 function App({ socket }) {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Layout socket={socket} />}>
-          <Analytics />
           <Route index element={<Home />} />
           <Route path="home" element={<Home />} />
           <Route path="about" element={<About />} />
