@@ -2,16 +2,15 @@ const express = require("express");
 const app = express();
 const http = require("http");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
-const LOCAL_PORT = dotenv.config().parsed.REACT_APP_LOCAL_PORT;
-const PROD_PORT = dotenv.config().parsed.REACT_APP_PROD_HOST;
+const LOCAL_PORT = process.env.REACT_APP_LOCAL_PORT;
+const PROD_PORT = process.env.REACT_APP_PROD_HOST;
 console.log(PROD_PORT);
 
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: PROD_PORT,
+    origin: LOCAL_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -24,7 +23,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: PROD_PORT,
+    origin: LOCAL_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   },
