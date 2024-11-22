@@ -1,6 +1,7 @@
 import React from "react";
+import InterestBox from "../components/InterestBox";
 
-export function IntroMessage() {
+export function IntroMessage({ socket }) {
   return (
     <div>
       <div className="d-flex mb-4">
@@ -20,6 +21,7 @@ export function IntroMessage() {
           to exciting discoveries and unexpected friendships. So go ahead, say
           hello, and let the conversation begin!
         </p>
+        <InterestBox socket={socket} />
       </div>
     </div>
   );
@@ -28,27 +30,41 @@ export function FindingUserMessage({ loadMessage = "" }) {
   return <div style={{ color: "#585d63" }}>{loadMessage}</div>;
 }
 
-export function ConnectedUserMessage() {
+export function ConnectedUserMessage({ interest }) {
   return (
     <p style={{ color: "#585d63", margin: 0 }} className="text-center">
       <span style={{ color: "#198754" }} className="fw-bold">
         Success!
       </span>{" "}
-      You are now connected to a random user. Dive into the conversation and
-      have fun!
+      {interest !== "" ? (
+        <span>
+          {" "}
+          You are now connected to a user with the same interest:{" "}
+          <strong>{interest}</strong>.
+        </span>
+      ) : (
+        <span>
+          {" "}
+          You are now connected to a random user. Dive into the conversation and
+          have fun!
+        </span>
+      )}
     </p>
   );
 }
 
-export function DicsonnectedUserMessage() {
+export function DicsonnectedUserMessage({ socket }) {
   return (
-    <p style={{ color: "#585d63", margin: 0 }} className="text-center">
-      The connection has been lost as one of the users has{" "}
-      <span style={{ color: "#dc3545" }} className="fw-bold">
-        disconnected
-      </span>
-      . You can start a new conversation anytime!
-    </p>
+    <div>
+      <p style={{ color: "#585d63", margin: 0 }} className="text-center">
+        The connection has been lost as one of the users has{" "}
+        <span style={{ color: "#dc3545" }} className="fw-bold">
+          disconnected
+        </span>
+        . You can start a new conversation anytime!
+      </p>
+      <InterestBox socket={socket} />
+    </div>
   );
 }
 export function TypingUserMessage({ isTyping }) {

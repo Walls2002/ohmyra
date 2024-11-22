@@ -24,6 +24,7 @@ function ChatBox({ socket }) {
   const [loadMessage] = useState(waitMessage());
   const [disconnectedUser, setDisconnectedUser] = useState(false);
   const [socketIds, SetSocketIds] = useState([]);
+  const [bothInterests, setBothInterests] = useState("");
 
   const [isTyping, setIsTyping] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -73,7 +74,7 @@ function ChatBox({ socket }) {
     }
   };
   const disconnectChat = () => {
-    socket.disconnect();
+    socket.emit("disconnect_chat");
     setConnect(false);
     handleClose();
     setMessage("");
@@ -123,9 +124,10 @@ function ChatBox({ socket }) {
         SetSocketIds(socketIdArray);
         setIsTyping("");
         setFindingUser(false);
+        setBothInterests(data.interest);
       }
 
-      console.log(data.message, " ", data.room);
+      console.log("Interest: ", data.interest);
       setConnect(data.conn);
     });
 
@@ -178,11 +180,11 @@ function ChatBox({ socket }) {
           }}
         >
           {firstMessage ? (
-            <IntroMessage />
+            <IntroMessage socket={socket} />
           ) : findingUser ? (
             <FindingUserMessage loadMessage={loadMessage} />
           ) : connect ? (
-            <ConnectedUserMessage />
+            <ConnectedUserMessage interest={bothInterests} />
           ) : (
             <></>
           )}
@@ -192,7 +194,11 @@ function ChatBox({ socket }) {
           )}
 
           {isTyping && <TypingUserMessage isTyping={isTyping} />}
-          {disconnectedUser ? <DicsonnectedUserMessage /> : <></>}
+          {disconnectedUser ? (
+            <DicsonnectedUserMessage socket={socket} />
+          ) : (
+            <></>
+          )}
         </div>
         <Container style={inputDiv}>
           <textarea
