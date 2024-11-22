@@ -69,10 +69,16 @@ export default function InterestBox({ socket }) {
       </InputGroup>
 
       {interestsCheck ? (
-        <div style={{ overflowWrap: "anywhere" }}>
-          <span className="fw-bold">Interest</span>:
+        <div style={{ overflowWrap: "anywhere", textAlign: "center" }}>
+          <span style={{ color: "rgb(43, 48, 53)" }} className="fw-bold">
+            Interest
+          </span>
+          :
           {interestsInArray.map((interest, index) => (
-            <span key={index} style={{ marginLeft: "8px" }}>
+            <span
+              key={index}
+              style={{ marginLeft: "8px", color: "rgb(43, 48, 53)" }}
+            >
               "{interest}"
             </span>
           ))}

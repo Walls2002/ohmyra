@@ -56,7 +56,10 @@ export function ConnectedUserMessage({ interest }) {
 export function DicsonnectedUserMessage({ socket }) {
   return (
     <div>
-      <p style={{ color: "#585d63", margin: 0 }} className="text-center">
+      <p
+        style={{ color: "#585d63", margin: 0, marginBottom: "15px" }}
+        className="text-center"
+      >
         The connection has been lost as one of the users has{" "}
         <span style={{ color: "#dc3545" }} className="fw-bold">
           disconnected

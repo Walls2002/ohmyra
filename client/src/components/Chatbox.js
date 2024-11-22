@@ -210,7 +210,7 @@ function ChatBox({ socket }) {
             }}
             rows={1}
             style={{
-              width: "85%",
+              width: "80vw",
               outline: "none",
               borderRadius: "10px",
               border: "none",
@@ -262,9 +262,23 @@ function ChatBox({ socket }) {
             </span>
           ) : (
             <>
-              <Button disabled={findingUser} onClick={findChat} variant="dark">
-                {findingUser ? <>Looking for Someone...</> : <>Chat Someone</>}
-              </Button>
+              {findingUser ? (
+                <Button
+                  disabled={findingUser}
+                  onClick={findChat}
+                  variant="danger"
+                >
+                  Cancel
+                </Button>
+              ) : (
+                <Button
+                  disabled={findingUser}
+                  onClick={findChat}
+                  variant="dark"
+                >
+                  Chat Someone
+                </Button>
+              )}
             </>
           )}
         </Container>

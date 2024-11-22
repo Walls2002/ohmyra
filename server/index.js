@@ -168,6 +168,7 @@ io.on("connection", (socket) => {
         });
 
         const handleDisconnect = () => {
+          socket.isInterestChecked = false;
           console.log(`User ${socket.id} disconnected`);
           io.to(room).emit("user_disconnected", {
             author: socket.id,
@@ -237,9 +238,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    isInterestChecked = false;
+    socket.isInterestChecked = false;
     interestsList = [];
     console.log("User Disconnected", socket.id);
+
+    for (const interest in interestQueues) {
+      interestQueues[interest] = interestQueues[interest].filter(
+        (userSocket) => userSocket.id !== socket.id
+      );
+
+      // Optionally, clean up empty interest queues
+      if (interestQueues[interest].length === 0) {
+        delete interestQueues[interest];
+      }
+    }
 
     waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
     allSocketIds = allSocketIds.filter((user) => user !== socket.id);
