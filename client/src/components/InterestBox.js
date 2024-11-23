@@ -1,46 +1,64 @@
 import React, { useState, useEffect } from "react";
-import { Form, InputGroup, Button } from "react-bootstrap";
+import { Form, InputGroup } from "react-bootstrap";
 
 export default function InterestBox({ socket }) {
-  const [interestsCheck, setInterestsCheck] = useState(false);
-
+  const [interestsCheck, setInterestsCheck] = useState(() => {
+    const storedValue = localStorage.getItem("interestsCheck");
+    return storedValue === "true";
+  });
   const [interestsInString, setInterestsInString] = useState(() => {
     return localStorage.getItem("interestsInString") === undefined
       ? ""
       : localStorage.getItem("interestsInString");
-  });
-  const [interestsInArray, setInterestsInArray] = useState([]);
-
-  socket.on("get_interests", (data) => {
-    setInterestsCheck(data.isInterestChecked);
-    setInterestsInString(data.interestsList);
-    console.log("Interest List: ", data.interestsList);
   });
 
   function handleChangeCheckBox(e) {
     let isChecked = e.target.checked;
     console.log(isChecked);
     setInterestsCheck(isChecked);
-
     socket.emit("check_interests", {
       isChecked: isChecked,
     });
   }
-  function saveInterests() {
-    setInterestsInArray(interestsInString.split(" "));
 
-    const interestsToArray = interestsInString.toLowerCase().split(" ");
+  function interesetOnchnage(event) {
+    setInterestsInString(event.target.value);
+  }
 
-    socket.emit("interests_list", {
-      interestsList: interestsToArray,
+  if (interestsCheck) {
+    socket.emit("check_interests", {
+      isChecked: interestsCheck,
     });
+    socket.emit("interests_list", {
+      interestsList: interestsInString.toLowerCase().split(" "),
+    });
+    console.log(interestsInString);
   }
 
   useEffect(() => {
-    if (interestsInString !== null && interestsInString !== undefined) {
-      localStorage.setItem("interestsInString", interestsInString);
-    }
-  }, [interestsInString]);
+    localStorage.setItem("interestsInString", interestsInString);
+    localStorage.setItem("interestsCheck", interestsCheck);
+    socket.emit("interests_list", {
+      interestsList: interestsInString.toLowerCase().split(" "),
+    });
+  }, [interestsInString, socket, interestsCheck]);
+
+  // Watch for changes to localStorage in other tabs
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === "interestsCheck") {
+        // Update the checkbox state when localStorage changes in another tab
+        setInterestsCheck(event.newValue === "true");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   return (
     <div>
@@ -49,43 +67,18 @@ export default function InterestBox({ socket }) {
           aria-label="Checkbox for following text input"
           style={{ backgroundColor: "black" }}
           onChange={handleChangeCheckBox}
-          value={interestsCheck}
+          checked={interestsCheck}
         />
         <Form.Control
           disabled={!interestsCheck}
-          onChange={(e) => setInterestsInString(e.target.value)}
+          onChange={(e) => {
+            interesetOnchnage(e);
+          }}
           value={interestsInString || ""}
           placeholder="Add your interests or school here"
           aria-label="Text input with checkbox"
         />
-        <Button
-          onClick={saveInterests}
-          disabled={!interestsCheck}
-          variant="dark"
-          id="button-addon2"
-        >
-          Save
-        </Button>
       </InputGroup>
-
-      {interestsCheck ? (
-        <div style={{ overflowWrap: "anywhere", textAlign: "center" }}>
-          <span style={{ color: "rgb(43, 48, 53)" }} className="fw-bold">
-            Interest
-          </span>
-          :
-          {interestsInArray.map((interest, index) => (
-            <span
-              key={index}
-              style={{ marginLeft: "8px", color: "rgb(43, 48, 53)" }}
-            >
-              "{interest}"
-            </span>
-          ))}
-        </div>
-      ) : (
-        <></>
-      )}
     </div>
   );
 }

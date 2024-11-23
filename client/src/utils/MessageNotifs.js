@@ -40,7 +40,7 @@ export function ConnectedUserMessage({ interest }) {
         <span>
           {" "}
           You are now connected to a user with the same interest:{" "}
-          <strong>{interest}</strong>.
+          <strong>{interest.join(" ").toUpperCase()}</strong>.
         </span>
       ) : (
         <span>
