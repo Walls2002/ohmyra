@@ -24,6 +24,7 @@ function ChatBox({ socket }) {
   const [loadMessage] = useState(waitMessage());
   const [disconnectedUser, setDisconnectedUser] = useState(false);
   const [socketIds, SetSocketIds] = useState([]);
+  const [bothInterests, setBothInterests] = useState();
 
   const [isTyping, setIsTyping] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -73,11 +74,20 @@ function ChatBox({ socket }) {
     }
   };
   const disconnectChat = () => {
+    socket.emit("disconnect_chat");
+    setConnect(false);
+    handleClose();
+    setMessage("");
+    setDisconnectedUser(true);
+    setFindingUser(false);
+  };
+  const disconnectWhileWaiting = () => {
     socket.disconnect();
     setConnect(false);
     handleClose();
     setMessage("");
     setDisconnectedUser(true);
+    setFindingUser(false);
   };
 
   const handleTyping = (e) => {
@@ -123,9 +133,10 @@ function ChatBox({ socket }) {
         SetSocketIds(socketIdArray);
         setIsTyping("");
         setFindingUser(false);
+        setBothInterests(data.interest);
       }
 
-      console.log(data.message, " ", data.room);
+      console.log("Interest: ", data.interest);
       setConnect(data.conn);
     });
 
@@ -178,11 +189,11 @@ function ChatBox({ socket }) {
           }}
         >
           {firstMessage ? (
-            <IntroMessage />
+            <IntroMessage socket={socket} />
           ) : findingUser ? (
             <FindingUserMessage loadMessage={loadMessage} />
           ) : connect ? (
-            <ConnectedUserMessage />
+            <ConnectedUserMessage interest={bothInterests} />
           ) : (
             <></>
           )}
@@ -192,7 +203,11 @@ function ChatBox({ socket }) {
           )}
 
           {isTyping && <TypingUserMessage isTyping={isTyping} />}
-          {disconnectedUser ? <DicsonnectedUserMessage /> : <></>}
+          {disconnectedUser ? (
+            <DicsonnectedUserMessage socket={socket} />
+          ) : (
+            <></>
+          )}
         </div>
         <Container style={inputDiv}>
           <textarea
@@ -204,7 +219,7 @@ function ChatBox({ socket }) {
             }}
             rows={1}
             style={{
-              width: "85%",
+              width: "80vw",
               outline: "none",
               borderRadius: "10px",
               border: "none",
@@ -256,9 +271,19 @@ function ChatBox({ socket }) {
             </span>
           ) : (
             <>
-              <Button disabled={findingUser} onClick={findChat} variant="dark">
-                {findingUser ? <>Looking for Someone...</> : <>Chat Someone</>}
-              </Button>
+              {findingUser ? (
+                <Button onClick={disconnectWhileWaiting} variant="danger">
+                  Cancel
+                </Button>
+              ) : (
+                <Button
+                  disabled={findingUser}
+                  onClick={findChat}
+                  variant="dark"
+                >
+                  Chat Someone
+                </Button>
+              )}
             </>
           )}
         </Container>

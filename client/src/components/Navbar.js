@@ -11,8 +11,6 @@ export default function NavBar({ socket }) {
   // });
 
   useEffect(() => {
-    console.log("TOTAL USER", totalUser);
-
     const getTotalUser = (data) => {
       SetTotalUser(data.total_user);
     };
