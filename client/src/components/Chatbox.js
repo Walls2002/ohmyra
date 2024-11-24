@@ -96,6 +96,8 @@ function ChatBox({ socket }) {
   };
 
   useEffect(() => {
+    console.log("MESSAGES: ", messageList);
+
     const handleMessageReceive = (data) => {
       setMessageList((list) => [...list, data]);
       window.scrollTo(0, document.body.scrollHeight);

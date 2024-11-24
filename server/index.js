@@ -109,6 +109,9 @@ io.on("connection", (socket) => {
         });
         user1.disconnect();
         user2.disconnect();
+        user1.off("send_message", handleMessage);
+        user2.off("send_message", handleMessage);
+
         waitingUsers = waitingUsers.filter((user) => user.id !== user1.id);
         waitingUsers = waitingUsers.filter((user) => user.id !== user2.id);
         allSocketIds = allSocketIds.filter((user) => user !== user1.id);
@@ -196,6 +199,9 @@ io.on("connection", (socket) => {
             conn: false,
             disc: true,
           });
+
+          user1.off("send_message", handleMessage);
+          user2.off("send_message", handleMessage);
 
           user1.leave(room);
           user2.leave(room);
