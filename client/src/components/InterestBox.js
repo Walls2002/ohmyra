@@ -7,9 +7,8 @@ export default function InterestBox({ socket }) {
     return storedValue === "true";
   });
   const [interestsInString, setInterestsInString] = useState(() => {
-    return localStorage.getItem("interestsInString") === undefined
-      ? ""
-      : localStorage.getItem("interestsInString");
+    const storedValue = localStorage.getItem("interestsInString");
+    return storedValue && storedValue !== "null" ? storedValue : ""; // Treat "null" or undefined as empty
   });
 
   function handleChangeCheckBox(e) {
