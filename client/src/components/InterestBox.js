@@ -38,9 +38,12 @@ export default function InterestBox({ socket }) {
   useEffect(() => {
     localStorage.setItem("interestsInString", interestsInString);
     localStorage.setItem("interestsCheck", interestsCheck);
-    socket.emit("interests_list", {
-      interestsList: interestsInString.toLowerCase().split(" "),
-    });
+
+    if (interestsInString !== null || interestsInString !== undefined) {
+      socket.emit("interests_list", {
+        interestsList: interestsInString.toLowerCase().split(" "),
+      });
+    }
   }, [interestsInString, socket, interestsCheck]);
 
   // Watch for changes to localStorage in other tabs
