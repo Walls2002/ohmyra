@@ -109,9 +109,9 @@ io.on("connection", (socket) => {
         });
         user1.disconnect();
         user2.disconnect();
-        user1.off("send_message", handleMessage);
-        user2.off("send_message", handleMessage);
 
+        user1.leave(room);
+        user2.leave(room);
         waitingUsers = waitingUsers.filter((user) => user.id !== user1.id);
         waitingUsers = waitingUsers.filter((user) => user.id !== user2.id);
         allSocketIds = allSocketIds.filter((user) => user !== user1.id);
@@ -123,6 +123,7 @@ io.on("connection", (socket) => {
       };
 
       user1.on("disconnect_chat", handleDisconnect);
+      user1.on("disconnect", handleDisconnect);
       user2.on("disconnect_chat", handleDisconnect);
 
       user1.on("disconnect", handleDisconnect);
@@ -140,6 +141,11 @@ io.on("connection", (socket) => {
         const user1 = interestQueues[interest].shift();
         const user2 = interestQueues[interest].shift();
 
+        // Check if the same user is matched
+        if (user1.id === user2.id) {
+          interestQueues[interest].push(user1);
+          continue; // Skip if the same user is matched
+        }
         const sharedInterests = user1.interestsList.filter((int) =>
           user2.interestsList.includes(int)
         );
@@ -212,7 +218,9 @@ io.on("connection", (socket) => {
         };
 
         user1.on("disconnect_chat", handleDisconnect);
+        user1.on("disconnect", handleDisconnect);
         user2.on("disconnect_chat", handleDisconnect);
+        user2.on("disconnect", handleDisconnect);
 
         user1.on("disconnect", handleDisconnect);
         user2.on("disconnect", handleDisconnect);
@@ -258,7 +266,7 @@ io.on("connection", (socket) => {
     socket.isInterestChecked = false;
     interestsList = [];
     console.log("User Disconnected", socket.id);
-
+    socket.emit("disconnect_chat");
     for (const interest in interestQueues) {
       interestQueues[interest] = interestQueues[interest].filter(
         (userSocket) => userSocket.id !== socket.id
