@@ -10,7 +10,7 @@ const PROD_PORT = process.env.REACT_APP_PROD_HOST;
 const { Server } = require("socket.io");
 app.use(
   cors({
-    origin: LOCAL_PORT,
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: LOCAL_PORT,
+    origin: PROD_PORT,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -46,18 +46,15 @@ io.on("connection", (socket) => {
     io.emit("total_online_user", { total_user: allSocketIds });
   });
 
-  socket.emit("get_interests", {
-    isInterestChecked: socket.isInterestChecked,
-    interestsList: socket.interestsList,
-  });
-
   socket.on("check_interests", (data) => {
     socket.isInterestChecked = data.isChecked;
 
-    console.log("Interests checked :", socket.isInterestChecked, socket.id);
+    // console.log("Interests checked :", socket.isInterestChecked, socket.id);
   });
   socket.on("interests_list", (data) => {
-    socket.interestsList = data.interestsList;
+    socket.interestsList = [
+      ...new Set(data.interestsList.filter((item) => item.trim() !== "")),
+    ];
   });
 
   const matchRandom = (socket) => {
@@ -128,6 +125,8 @@ io.on("connection", (socket) => {
       user1.on("disconnect_chat", handleDisconnect);
       user1.on("disconnect", handleDisconnect);
       user2.on("disconnect_chat", handleDisconnect);
+
+      user1.on("disconnect", handleDisconnect);
       user2.on("disconnect", handleDisconnect);
     } else {
       io.to(socket.id).emit("finding_user", true);
@@ -147,20 +146,39 @@ io.on("connection", (socket) => {
           interestQueues[interest].push(user1);
           continue; // Skip if the same user is matched
         }
+        const sharedInterests = user1.interestsList.filter((int) =>
+          user2.interestsList.includes(int)
+        );
 
         const room = `interest-room-${interest}-${user1.id}-${user2.id}`;
         user1.join(room);
         user2.join(room);
-        console.log(`Matched ${user1.id} with ${user2.id} in ${room}`);
+        console.log(
+          `Matched ${user1.id} with ${user2.id} in ${room} - ${interest}`
+        );
 
         io.to(room).emit("match", {
           message: "You are matched!",
           room,
           conn: true,
-          interest: interest,
+          interest: sharedInterests,
         });
 
         io.emit("finding_user", false);
+
+        // Remove the socket from all interest queues
+
+        for (const interest in interestQueues) {
+          interestQueues[interest] = interestQueues[interest].filter(
+            (userSocket) =>
+              userSocket.id !== user1.id && userSocket.id !== user2.id
+          );
+
+          // Optionally, clean up empty interest queues
+          if (interestQueues[interest].length === 0) {
+            delete interestQueues[interest];
+          }
+        }
 
         const handleMessage = (data) => {
           io.to(room).emit("receive_message", { author: socket.id, ...data });
@@ -179,26 +197,14 @@ io.on("connection", (socket) => {
         });
 
         const handleDisconnect = () => {
-          socket.isInterestChecked = false;
+          user2.isInterestChecked = false;
+          user1.isInterestChecked = false;
           console.log(`User ${socket.id} disconnected`);
           io.to(room).emit("user_disconnected", {
             author: socket.id,
             conn: false,
             disc: true,
           });
-
-          // Remove the socket from all interest queues
-
-          for (const interest in interestQueues) {
-            interestQueues[interest] = interestQueues[interest].filter(
-              (userSocket) => userSocket.id !== socket.id
-            );
-
-            // Optionally, clean up empty interest queues
-            if (interestQueues[interest].length === 0) {
-              delete interestQueues[interest];
-            }
-          }
 
           user1.leave(room);
           user2.leave(room);
@@ -213,6 +219,9 @@ io.on("connection", (socket) => {
         user2.on("disconnect_chat", handleDisconnect);
         user2.on("disconnect", handleDisconnect);
 
+        user1.on("disconnect", handleDisconnect);
+        user2.on("disconnect", handleDisconnect);
+
         matched = true;
         break;
       }
@@ -220,7 +229,7 @@ io.on("connection", (socket) => {
     if (!matched) {
       io.to(socket.id).emit("finding_user", true);
       console.log(
-        `No matches found for ${socket.id} based on interests. Waiting...`
+        `No matches found for ${socket.id} based on interests ${socket.interestsList}. Waiting...`
       );
     }
   };
@@ -272,8 +281,6 @@ io.on("connection", (socket) => {
     socket.on("request_total_online_user", () => {
       io.emit("total_online_user", { total_user: allSocketIds });
     });
-
-    console.log("WAITING USER:", waitingUsers);
   });
 });
 

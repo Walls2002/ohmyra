@@ -28,7 +28,7 @@ function ChatBox({ socket }) {
   const [loadMessage] = useState(waitMessage());
   const [disconnectedUser, setDisconnectedUser] = useState(false);
   const [socketIds, SetSocketIds] = useState([]);
-  const [bothInterests, setBothInterests] = useState("");
+  const [bothInterests, setBothInterests] = useState();
 
   const [isTyping, setIsTyping] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -102,6 +102,15 @@ function ChatBox({ socket }) {
     handleClose();
     setMessage("");
     setDisconnectedUser(true);
+    setFindingUser(false);
+  };
+  const disconnectWhileWaiting = () => {
+    socket.disconnect();
+    setConnect(false);
+    handleClose();
+    setMessage("");
+    setDisconnectedUser(true);
+    setFindingUser(false);
   };
 
   const cancelFinding = () => {
