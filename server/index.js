@@ -206,6 +206,9 @@ io.on("connection", (socket) => {
             disc: true,
           });
 
+          user1.off("send_message", handleMessage);
+          user2.off("send_message", handleMessage);
+
           user1.leave(room);
           user2.leave(room);
 

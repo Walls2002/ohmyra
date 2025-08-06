@@ -6,9 +6,8 @@ export default function InterestBox({ socket }) {
   const [interestsCheck, setInterestsCheck] = useState(false);
 
   const [interestsInString, setInterestsInString] = useState(() => {
-    return localStorage.getItem("interestsInString") === undefined
-      ? ""
-      : localStorage.getItem("interestsInString");
+    const storedValue = localStorage.getItem("interestsInString");
+    return storedValue && storedValue !== "null" ? storedValue : ""; // Treat "null" or undefined as empty
   });
   const [interestsInArray, setInterestsInArray] = useState([]);
 

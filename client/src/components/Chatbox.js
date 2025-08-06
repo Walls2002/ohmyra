@@ -128,6 +128,8 @@ function ChatBox({ socket }) {
   };
 
   useEffect(() => {
+    console.log("MESSAGES: ", messageList);
+
     const handleMessageReceive = (data) => {
       setMessageList((list) => [...list, data]);
       setTimeout(scrollToBottom, 100);
