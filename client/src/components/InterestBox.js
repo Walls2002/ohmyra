@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Form, InputGroup, Button } from "react-bootstrap";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function InterestBox({ socket }) {
+  const { isDarkMode } = useTheme();
   const [interestsCheck, setInterestsCheck] = useState(false);
 
   const [interestsInString, setInterestsInString] = useState(() => {
@@ -44,47 +45,204 @@ export default function InterestBox({ socket }) {
 
   return (
     <div>
-      <InputGroup className="mb-3">
-        <InputGroup.Checkbox
-          aria-label="Checkbox for following text input"
-          style={{ backgroundColor: "black" }}
-          onChange={handleChangeCheckBox}
-          value={interestsCheck}
-        />
-        <Form.Control
+      <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            padding: "12px",
+            background: interestsCheck
+              ? isDarkMode
+                ? "rgba(160, 163, 189, 0.2)"
+                : "rgba(203, 213, 225, 0.3)"
+              : isDarkMode
+              ? "rgba(160, 163, 189, 0.1)"
+              : "rgba(203, 213, 225, 0.15)",
+            borderRadius: "8px",
+            border: isDarkMode
+              ? "1px solid rgba(160, 163, 189, 0.3)"
+              : "1px solid rgba(203, 213, 225, 0.4)",
+            transition: "all 0.2s ease",
+            minWidth: "auto",
+          }}
+        >
+          <input
+            type="checkbox"
+            onChange={handleChangeCheckBox}
+            checked={interestsCheck}
+            style={{
+              width: "16px",
+              height: "16px",
+              margin: 0,
+              accentColor: "#e8e6e3",
+            }}
+          />
+        </label>
+
+        <input
           disabled={!interestsCheck}
           onChange={(e) => setInterestsInString(e.target.value)}
           value={interestsInString || ""}
-          placeholder="Add your interests or school here"
-          aria-label="Text input with checkbox"
+          placeholder="Add interests separated by spaces (e.g. gaming music sports)"
+          style={{
+            flex: 1,
+            padding: "12px 16px",
+            background: interestsCheck
+              ? isDarkMode
+                ? "rgba(55, 65, 81, 0.8)"
+                : "rgba(255, 255, 255, 0.9)"
+              : isDarkMode
+              ? "rgba(55, 65, 81, 0.4)"
+              : "rgba(248, 250, 252, 0.5)",
+            border: isDarkMode
+              ? "1px solid rgba(160, 163, 189, 0.3)"
+              : "1px solid rgba(203, 213, 225, 0.4)",
+            borderRadius: "8px",
+            color: interestsCheck
+              ? isDarkMode
+                ? "#e8e6e3"
+                : "#1e293b"
+              : isDarkMode
+              ? "rgba(232, 230, 227, 0.5)"
+              : "rgba(30, 41, 59, 0.5)",
+            fontSize: "14px",
+            outline: "none",
+            transition: "all 0.2s ease",
+          }}
+          onFocus={(e) => {
+            if (interestsCheck) {
+              e.target.style.border = isDarkMode
+                ? "1px solid rgba(160, 163, 189, 0.5)"
+                : "1px solid rgba(203, 213, 225, 0.6)";
+              e.target.style.background = isDarkMode
+                ? "rgba(55, 65, 81, 0.9)"
+                : "rgba(255, 255, 255, 1)";
+            }
+          }}
+          onBlur={(e) => {
+            e.target.style.border = isDarkMode
+              ? "1px solid rgba(160, 163, 189, 0.3)"
+              : "1px solid rgba(203, 213, 225, 0.4)";
+            e.target.style.background = interestsCheck
+              ? isDarkMode
+                ? "rgba(55, 65, 81, 0.8)"
+                : "rgba(255, 255, 255, 0.9)"
+              : isDarkMode
+              ? "rgba(55, 65, 81, 0.4)"
+              : "rgba(248, 250, 252, 0.5)";
+          }}
         />
-        <Button
+
+        <button
           onClick={saveInterests}
           disabled={!interestsCheck}
-          variant="dark"
-          id="button-addon2"
+          style={{
+            padding: "12px 20px",
+            background: interestsCheck
+              ? isDarkMode
+                ? "rgba(160, 163, 189, 0.8)"
+                : "rgba(203, 213, 225, 0.8)"
+              : isDarkMode
+              ? "rgba(160, 163, 189, 0.3)"
+              : "rgba(203, 213, 225, 0.3)",
+            border: isDarkMode
+              ? "1px solid rgba(160, 163, 189, 0.4)"
+              : "1px solid rgba(203, 213, 225, 0.5)",
+            borderRadius: "8px",
+            color: interestsCheck
+              ? isDarkMode
+                ? "#1e293b"
+                : "#1e293b"
+              : isDarkMode
+              ? "rgba(30, 41, 59, 0.5)"
+              : "rgba(30, 41, 59, 0.5)",
+            fontSize: "14px",
+            fontWeight: "500",
+            cursor: interestsCheck ? "pointer" : "not-allowed",
+            transition: "all 0.2s ease",
+            minWidth: "60px",
+          }}
+          onMouseOver={(e) => {
+            if (interestsCheck) {
+              e.target.style.background = isDarkMode
+                ? "rgba(160, 163, 189, 0.9)"
+                : "rgba(203, 213, 225, 0.9)";
+            }
+          }}
+          onMouseOut={(e) => {
+            e.target.style.background = interestsCheck
+              ? isDarkMode
+                ? "rgba(160, 163, 189, 0.8)"
+                : "rgba(203, 213, 225, 0.8)"
+              : isDarkMode
+              ? "rgba(160, 163, 189, 0.3)"
+              : "rgba(203, 213, 225, 0.3)";
+          }}
         >
           Save
-        </Button>
-      </InputGroup>
+        </button>
+      </div>
 
-      {interestsCheck ? (
-        <div style={{ overflowWrap: "anywhere", textAlign: "center" }}>
-          <span style={{ color: "rgb(43, 48, 53)" }} className="fw-bold">
-            Interest
-          </span>
-          :
-          {interestsInArray.map((interest, index) => (
-            <span
-              key={index}
-              style={{ marginLeft: "8px", color: "rgb(43, 48, 53)" }}
-            >
-              "{interest}"
-            </span>
-          ))}
+      {interestsCheck && interestsInArray.length > 0 && (
+        <div
+          style={{
+            marginTop: "16px",
+            padding: "12px",
+            background: isDarkMode
+              ? "rgba(55, 65, 81, 0.6)"
+              : "rgba(248, 250, 252, 0.8)",
+            borderRadius: "8px",
+            border: isDarkMode
+              ? "1px solid rgba(160, 163, 189, 0.2)"
+              : "1px solid rgba(203, 213, 225, 0.3)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "12px",
+              color: isDarkMode
+                ? "rgba(232, 230, 227, 0.7)"
+                : "rgba(30, 41, 59, 0.7)",
+              marginBottom: "8px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              fontWeight: "500",
+            }}
+          >
+            Interests
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "6px",
+              justifyContent: "center",
+            }}
+          >
+            {interestsInArray.map((interest, index) => (
+              <span
+                key={index}
+                style={{
+                  padding: "4px 8px",
+                  background: isDarkMode
+                    ? "rgba(160, 163, 189, 0.2)"
+                    : "rgba(203, 213, 225, 0.3)",
+                  border: isDarkMode
+                    ? "1px solid rgba(160, 163, 189, 0.3)"
+                    : "1px solid rgba(203, 213, 225, 0.4)",
+                  borderRadius: "12px",
+                  color: isDarkMode ? "#e8e6e3" : "#1e293b",
+                  fontSize: "12px",
+                  fontWeight: "400",
+                }}
+              >
+                {interest}
+              </span>
+            ))}
+          </div>
         </div>
-      ) : (
-        <></>
       )}
     </div>
   );
