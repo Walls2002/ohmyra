@@ -44,13 +44,20 @@ export default function InterestBox({ socket }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "8px", alignItems: "stretch" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: window.innerWidth < 480 ? "6px" : "8px",
+          alignItems: "stretch",
+          flexWrap: window.innerWidth < 320 ? "wrap" : "nowrap", // Allow wrapping on very small screens
+        }}
+      >
         <label
           style={{
             display: "flex",
             alignItems: "center",
             cursor: "pointer",
-            padding: "12px",
+            padding: window.innerWidth < 480 ? "10px" : "12px", // Reduced padding on mobile
             background: interestsCheck
               ? isDarkMode
                 ? "rgba(160, 163, 189, 0.2)"
@@ -64,6 +71,8 @@ export default function InterestBox({ socket }) {
               : "1px solid rgba(203, 213, 225, 0.4)",
             transition: "all 0.2s ease",
             minWidth: "auto",
+            flexShrink: 0, // Prevent label from shrinking
+            boxSizing: "border-box",
           }}
         >
           <input
@@ -86,7 +95,9 @@ export default function InterestBox({ socket }) {
           placeholder="Add interests separated by spaces (e.g. gaming music sports)"
           style={{
             flex: 1,
-            padding: "12px 16px",
+            minWidth: 0, // Allows flex item to shrink below content size
+            width: "100%", // Ensures full width within flex container
+            padding: window.innerWidth < 480 ? "10px 12px" : "12px 16px", // Reduced padding on mobile
             background: interestsCheck
               ? isDarkMode
                 ? "rgba(55, 65, 81, 0.8)"
@@ -105,9 +116,10 @@ export default function InterestBox({ socket }) {
               : isDarkMode
               ? "rgba(232, 230, 227, 0.5)"
               : "rgba(30, 41, 59, 0.5)",
-            fontSize: "14px",
+            fontSize: window.innerWidth < 480 ? "13px" : "14px", // Smaller font on mobile
             outline: "none",
             transition: "all 0.2s ease",
+            boxSizing: "border-box", // Include padding and border in width calculation
           }}
           onFocus={(e) => {
             if (interestsCheck) {
@@ -137,7 +149,7 @@ export default function InterestBox({ socket }) {
           onClick={saveInterests}
           disabled={!interestsCheck}
           style={{
-            padding: "12px 20px",
+            padding: window.innerWidth < 480 ? "10px 16px" : "12px 20px", // Reduced padding on mobile
             background: interestsCheck
               ? isDarkMode
                 ? "rgba(160, 163, 189, 0.8)"
@@ -156,11 +168,13 @@ export default function InterestBox({ socket }) {
               : isDarkMode
               ? "rgba(30, 41, 59, 0.5)"
               : "rgba(30, 41, 59, 0.5)",
-            fontSize: "14px",
+            fontSize: window.innerWidth < 480 ? "13px" : "14px", // Smaller font on mobile
             fontWeight: "500",
             cursor: interestsCheck ? "pointer" : "not-allowed",
             transition: "all 0.2s ease",
-            minWidth: "60px",
+            minWidth: window.innerWidth < 480 ? "50px" : "60px", // Smaller min-width on mobile
+            boxSizing: "border-box",
+            flexShrink: 0, // Prevent button from shrinking
           }}
           onMouseOver={(e) => {
             if (interestsCheck) {

@@ -306,7 +306,7 @@ function About() {
                     }}
                   >
                     With a focus on privacy, safety, and user experience, I've
-                    crafted Ohmyra to be more than just another chat platform—
+                    crafted Ohmyra to be more than just another chat platform
                     it's a space for meaningful conversations and authentic
                     connections.
                   </p>
@@ -364,7 +364,7 @@ function About() {
                         e.target.style.boxShadow = "0 5px 15px rgba(0,0,0,0.2)";
                       }}
                     >
-                      🌐 View Portfolio
+                      🔗 View Portfolio
                     </Button>
                     <Button
                       href="https://github.com/Walls2002"
@@ -389,7 +389,12 @@ function About() {
                         e.target.style.transform = "translateY(0)";
                       }}
                     >
-                      🐙 GitHub Profile
+                      <img
+                        src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                        alt="GitHub"
+                        style={{ width: "20px", height: "20px" }}
+                      />{" "}
+                      GitHub Profile
                     </Button>
                   </div>
                 </Col>

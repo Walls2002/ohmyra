@@ -167,7 +167,7 @@ export function DicsonnectedUserMessage({ socket }) {
         <span style={{ color: "#dc2626", fontWeight: "600" }}>
           Disconnected
         </span>{" "}
-        - The other user has left the conversation.
+        - You or the other user has left the conversation.
       </p>
       <InterestBox socket={socket} />
     </div>
