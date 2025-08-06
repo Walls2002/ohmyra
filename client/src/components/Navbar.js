@@ -8,7 +8,13 @@ import { useTheme } from "../contexts/ThemeContext";
 
 export default function NavBar({ socket }) {
   const [totalUser, SetTotalUser] = useState([]);
+  const [expanded, setExpanded] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
+
+  // Function to trigger navbar toggle
+  const toggleNavbar = () => {
+    setExpanded(!expanded);
+  };
 
   // socket.on("total_online _user", (data) => {
   //   SetTotalUser(data.total_user);
@@ -38,6 +44,8 @@ export default function NavBar({ socket }) {
       expand="lg"
       className="shadow-lg"
       sticky="top"
+      expanded={expanded}
+      onToggle={setExpanded}
       style={{
         background: isDarkMode
           ? "rgba(45, 55, 72, 0.95)"
@@ -196,6 +204,7 @@ export default function NavBar({ socket }) {
               }}
               onClick={() => {
                 socket.emit("disconnect_chat");
+                setExpanded(false); // Close navbar on mobile after click
               }}
             >
               🏠 Home
@@ -222,6 +231,9 @@ export default function NavBar({ socket }) {
                 e.target.style.background = "transparent";
                 e.target.style.color = isDarkMode ? "#e8e6e3" : "#1e293b";
                 e.target.style.transform = "translateY(0)";
+              }}
+              onClick={() => {
+                setExpanded(false); // Close navbar on mobile after click
               }}
             >
               💬 Chat
@@ -251,11 +263,11 @@ export default function NavBar({ socket }) {
               }}
               onClick={() => {
                 socket.emit("disconnect_chat");
+                setExpanded(false); // Close navbar on mobile after click
               }}
             >
               ℹ️ About
             </Link>
-            {/* <Nav.Link href="/About">About</Nav.Link> */}
           </Nav>
 
           <div className="d-none d-lg-flex align-items-center">

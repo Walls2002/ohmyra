@@ -1,6 +1,8 @@
-import React from "react";
 import InterestBox from "../components/InterestBox";
 import { useTheme } from "../contexts/ThemeContext";
+import toast, { Toaster } from "react-hot-toast";
+
+import { useState } from "react";
 
 export function IntroMessage({ socket }) {
   const { isDarkMode } = useTheme();
@@ -55,45 +57,145 @@ export function IntroMessage({ socket }) {
           Connect with new people and start meaningful conversations.
         </p>
         <InterestBox socket={socket} />
+        <button
+          className="mt-2"
+          style={{
+            background: isDarkMode ? "#e8e6e3" : "#1e293b",
+            color: isDarkMode ? "#1e293b" : "#e8e6e3",
+            border: "none",
+            borderRadius: "8px",
+            padding: "12px 20px",
+            fontSize: "0.9rem",
+            fontWeight: "600",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            boxShadow: isDarkMode
+              ? "0 2px 8px rgba(30, 64, 175, 0.3)"
+              : "0 2px 8px rgba(59, 130, 246, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            minWidth: "140px",
+            width: "100%",
+            justifyContent: "center",
+          }}
+        >
+          View Saved Messages
+        </button>
       </div>
     </div>
   );
 }
 
-export function FindingUserMessage({ loadMessage = "" }) {
+export function FindingUserMessage({
+  loadMessage = "Looking for someone to chat with...",
+}) {
   const { isDarkMode } = useTheme();
 
   return (
     <div
       style={{
-        color: isDarkMode ? "#a0a3bd" : "#6b7280",
-        padding: "12px 16px",
-        background: isDarkMode ? "#374151" : "#f9fafb",
-        borderRadius: "6px",
-        border: isDarkMode ? "1px solid #4b5563" : "1px solid #e5e7eb",
-        fontSize: "0.9rem",
+        padding: "24px 20px",
+        background: isDarkMode
+          ? "rgba(45, 55, 72, 0.95)"
+          : "rgba(248, 250, 252, 0.95)",
+        borderRadius: "16px",
+        border: isDarkMode
+          ? "1px solid rgba(160, 163, 189, 0.2)"
+          : "1px solid rgba(203, 213, 225, 0.3)",
         textAlign: "center",
-        margin: "10px 0",
+        margin: "20px 0",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "8px",
-        }}
-      >
+      {/* Main content */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Message */}
+        <h3
+          style={{
+            color: isDarkMode ? "#e8e6e3" : "#1e293b",
+            fontSize: "1.1rem",
+            fontWeight: "600",
+            margin: "0 0 8px 0",
+            letterSpacing: "0.025em",
+          }}
+        >
+          Finding Your Match
+        </h3>
+
+        <p
+          style={{
+            color: isDarkMode ? "#a0a3bd" : "#64748b",
+            fontSize: "0.9rem",
+            margin: "0 0 16px 0",
+            lineHeight: "1.4",
+          }}
+        >
+          {loadMessage}
+        </p>
+
+        {/* Animated dots */}
         <div
           style={{
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            background: "#9ca3af",
-            animation: "pulse 2s infinite",
+            display: "flex",
+            justifyContent: "center",
+            gap: "4px",
+            marginTop: "12px",
           }}
-        ></div>
-        {loadMessage}
+        >
+          {[0, 1, 2].map((index) => (
+            <div
+              key={index}
+              style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                background: isDarkMode ? "#e8e6e3" : "#1e293b",
+                animation: `pulse 1.5s ease-in-out ${index * 0.2}s infinite`,
+                opacity: 0.8,
+              }}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* CSS Animations */}
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          @keyframes pulse {
+            0%, 80%, 100% { 
+              transform: scale(0.8);
+              opacity: 0.4;
+            }
+            40% { 
+              transform: scale(1);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          @keyframes breathe {
+            0%, 100% { 
+              transform: scale(1);
+              opacity: 0.7;
+            }
+            50% { 
+              transform: scale(1.2);
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
@@ -142,34 +244,212 @@ export function ConnectedUserMessage({ interest }) {
   );
 }
 
-export function DicsonnectedUserMessage({ socket }) {
+export function DisconnectedUserMessage({ socket, messages }) {
   const { isDarkMode } = useTheme();
+  const [savedMessages, setSavedMessages] = useState(() => {
+    const storedMessages = localStorage.getItem("savedMessages");
+    return storedMessages && storedMessages !== "null"
+      ? JSON.parse(storedMessages)
+      : [];
+  });
+
+  const [isSaved, setIsSaved] = useState(false);
+
+  const onSaveConversation = () => {
+    if (isSaved) {
+      toast.error("Conversation already saved!", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (messages.length === 0) {
+      alert("No messages to save.");
+      return;
+    }
+    setIsSaved(true);
+
+    const conversationData = {
+      messages: messages,
+      timestamp: new Date().toISOString(),
+    };
+
+    setSavedMessages([...savedMessages, conversationData]);
+    localStorage.setItem("savedMessages", JSON.stringify(savedMessages));
+    toast.success("Conversation saved successfully!", {
+      duration: 3000,
+    });
+  };
 
   return (
     <div
       style={{
-        padding: "16px",
-        background: isDarkMode ? "#450a0a" : "#fef2f2",
-        borderRadius: "6px",
-        border: isDarkMode ? "1px solid #dc2626" : "1px solid #ef4444",
-        margin: "15px 0",
+        padding: "24px",
+        background: isDarkMode ? "#3a2e1a" : "#fef2f2",
+        borderRadius: "12px",
+        border: isDarkMode ? "1px solid #ca8a04" : "1px solid #ef4444",
+        margin: "20px 0",
+        boxShadow: isDarkMode
+          ? "0 4px 12px rgba(202, 138, 4, 0.15)"
+          : "0 4px 12px rgba(239, 68, 68, 0.15)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <p
-        style={{
-          color: isDarkMode ? "#e8e6e3" : "#374151",
-          margin: 0,
-          marginBottom: "16px",
-          fontSize: "0.9rem",
-        }}
-        className="text-center"
-      >
-        <span style={{ color: "#dc2626", fontWeight: "600" }}>
-          Disconnected
-        </span>{" "}
-        - You or the other user has left the conversation.
-      </p>
-      <InterestBox socket={socket} />
+      {/* Main content */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Disconnection icon and message */}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h3
+            style={{
+              color: isDarkMode ? "#fbbf24" : "#dc2626",
+              fontSize: "1.1rem",
+              fontWeight: "700",
+              margin: "0 0 8px 0",
+              letterSpacing: "0.025em",
+            }}
+          >
+            Connection Lost
+          </h3>
+
+          <p
+            style={{
+              color: isDarkMode ? "#d1d5db" : "#4b5563",
+              margin: 0,
+              fontSize: "0.9rem",
+              lineHeight: "1.4",
+              opacity: 0.9,
+            }}
+          >
+            The conversation has ended. You or the other user has left the chat.
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={onSaveConversation}
+            style={{
+              background: isDarkMode ? "#065f46" : "#10b981",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "12px 20px",
+              fontSize: "0.9rem",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              boxShadow: isDarkMode
+                ? "0 2px 8px rgba(6, 95, 70, 0.3)"
+                : "0 2px 8px rgba(16, 185, 129, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              minWidth: "140px",
+              justifyContent: "center",
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = isDarkMode
+                ? "0 4px 12px rgba(6, 95, 70, 0.4)"
+                : "0 4px 12px rgba(16, 185, 129, 0.4)";
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = isDarkMode
+                ? "0 2px 8px rgba(6, 95, 70, 0.3)"
+                : "0 2px 8px rgba(16, 185, 129, 0.3)";
+            }}
+          >
+            Save Chat
+          </button>
+
+          <button
+            onClick={() => {
+              if (savedMessages.length === 0) {
+                toast.error("No saved messages found!", {
+                  duration: 3000,
+                });
+                return;
+              }
+              // You can implement a modal or navigation to view saved messages
+              console.log("Saved messages:", savedMessages);
+              toast.success(
+                `Found ${savedMessages.length} saved conversation(s)!`,
+                {
+                  duration: 3000,
+                }
+              );
+            }}
+            style={{
+              background: isDarkMode ? "#1e40af" : "#3b82f6",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "12px 20px",
+              fontSize: "0.9rem",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              boxShadow: isDarkMode
+                ? "0 2px 8px rgba(30, 64, 175, 0.3)"
+                : "0 2px 8px rgba(59, 130, 246, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              minWidth: "140px",
+              justifyContent: "center",
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = "translateY(-2px)";
+              e.target.style.boxShadow = isDarkMode
+                ? "0 4px 12px rgba(30, 64, 175, 0.4)"
+                : "0 4px 12px rgba(59, 130, 246, 0.4)";
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = "translateY(0)";
+              e.target.style.boxShadow = isDarkMode
+                ? "0 2px 8px rgba(30, 64, 175, 0.3)"
+                : "0 2px 8px rgba(59, 130, 246, 0.3)";
+            }}
+          >
+            View Saved Messages
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{
+            height: "1px",
+            background: isDarkMode ? "#4b5563" : "#d1d5db",
+            margin: "20px 0",
+            opacity: 0.5,
+          }}
+        />
+
+        {/* Find new match section */}
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              color: isDarkMode ? "#9ca3af" : "#6b7280",
+              fontSize: "0.85rem",
+              margin: "0 0 16px 0",
+              fontWeight: "500",
+            }}
+          >
+            Ready for another conversation?
+          </p>
+          <InterestBox socket={socket} />
+        </div>
+      </div>
     </div>
   );
 }

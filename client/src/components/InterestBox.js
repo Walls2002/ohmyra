@@ -3,13 +3,17 @@ import { useTheme } from "../contexts/ThemeContext";
 
 export default function InterestBox({ socket }) {
   const { isDarkMode } = useTheme();
-  const [interestsCheck, setInterestsCheck] = useState(false);
-
-  const [interestsInString, setInterestsInString] = useState(() => {
-    const storedValue = localStorage.getItem("interestsInString");
-    return storedValue && storedValue !== "null" ? storedValue : ""; // Treat "null" or undefined as empty
+  const [interestsCheck, setInterestsCheck] = useState(() => {
+    const storedValue = localStorage.getItem("isInterestChecked");
+    return storedValue === "true";
   });
-  const [interestsInArray, setInterestsInArray] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
+
+  const [interestsInString, setInterestsInString] = useState("");
+  const [interestsInArray, setInterestsInArray] = useState(() => {
+    const storedValue = localStorage.getItem("interestsInArray");
+    return storedValue && storedValue !== "null" ? JSON.parse(storedValue) : [];
+  });
 
   socket.on("get_interests", (data) => {
     setInterestsCheck(data.isInterestChecked);
@@ -22,34 +26,76 @@ export default function InterestBox({ socket }) {
     console.log(isChecked);
     setInterestsCheck(isChecked);
 
+    localStorage.setItem("isInterestChecked", isChecked);
+
     socket.emit("check_interests", {
       isChecked: isChecked,
     });
   }
   function saveInterests() {
-    setInterestsInArray(interestsInString.split(" "));
+    if (interestsInString.trim() === "") {
+      return;
+    }
 
-    const interestsToArray = interestsInString.toLowerCase().split(" ");
+    if (
+      interestsInArray.some(
+        (interest) =>
+          interest.trim().toLowerCase() ===
+          interestsInString.trim().toLowerCase()
+      )
+    ) {
+      setInterestsInString("");
+      return;
+    }
+
+    setInterestsInArray([...interestsInArray, interestsInString]);
+
+    // const interestsToArray = interestsInString.toLowerCase().split(" ");
 
     socket.emit("interests_list", {
-      interestsList: interestsToArray,
+      interestsList: interestsInArray,
+    });
+
+    setInterestsInString("");
+  }
+
+  function removeInterest(indexToRemove) {
+    const updatedInterests = interestsInArray.filter(
+      (_, index) => index !== indexToRemove
+    );
+    setInterestsInArray(updatedInterests);
+
+    socket.emit("interests_list", {
+      interestsList: updatedInterests,
     });
   }
 
   useEffect(() => {
-    if (interestsInString !== null && interestsInString !== undefined) {
-      localStorage.setItem("interestsInString", interestsInString);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 480);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (interestsInArray !== null && interestsInArray !== undefined) {
+      localStorage.setItem(
+        "interestsInArray",
+        JSON.stringify(interestsInArray)
+      );
     }
-  }, [interestsInString]);
+  }, [interestsInArray]);
 
   return (
     <div>
       <div
         style={{
           display: "flex",
-          gap: window.innerWidth < 480 ? "6px" : "8px",
+          gap: "8px",
           alignItems: "stretch",
-          flexWrap: window.innerWidth < 320 ? "wrap" : "nowrap", // Allow wrapping on very small screens
+          flexDirection: isMobile ? "column" : "row", // Stack vertically on mobile
         }}
       >
         <label
@@ -57,7 +103,7 @@ export default function InterestBox({ socket }) {
             display: "flex",
             alignItems: "center",
             cursor: "pointer",
-            padding: window.innerWidth < 480 ? "10px" : "12px", // Reduced padding on mobile
+            padding: "12px",
             background: interestsCheck
               ? isDarkMode
                 ? "rgba(160, 163, 189, 0.2)"
@@ -71,8 +117,10 @@ export default function InterestBox({ socket }) {
               : "1px solid rgba(203, 213, 225, 0.4)",
             transition: "all 0.2s ease",
             minWidth: "auto",
-            flexShrink: 0, // Prevent label from shrinking
+            flexShrink: 0,
             boxSizing: "border-box",
+            justifyContent: isMobile ? "center" : "flex-start", // Center on mobile
+            gap: isMobile ? "8px" : "0", // Add gap for text on mobile
           }}
         >
           <input
@@ -86,115 +134,247 @@ export default function InterestBox({ socket }) {
               accentColor: "#e8e6e3",
             }}
           />
+          {isMobile && (
+            <span
+              style={{
+                fontSize: "14px",
+                color: isDarkMode ? "#e8e6e3" : "#1e293b",
+                fontWeight: "500",
+              }}
+            >
+              Enable Interests
+            </span>
+          )}
         </label>
 
-        <input
-          disabled={!interestsCheck}
-          onChange={(e) => setInterestsInString(e.target.value)}
-          value={interestsInString || ""}
-          placeholder="Add interests separated by spaces (e.g. gaming music sports)"
-          style={{
-            flex: 1,
-            minWidth: 0, // Allows flex item to shrink below content size
-            width: "100%", // Ensures full width within flex container
-            padding: window.innerWidth < 480 ? "10px 12px" : "12px 16px", // Reduced padding on mobile
-            background: interestsCheck
-              ? isDarkMode
-                ? "rgba(55, 65, 81, 0.8)"
-                : "rgba(255, 255, 255, 0.9)"
-              : isDarkMode
-              ? "rgba(55, 65, 81, 0.4)"
-              : "rgba(248, 250, 252, 0.5)",
-            border: isDarkMode
-              ? "1px solid rgba(160, 163, 189, 0.3)"
-              : "1px solid rgba(203, 213, 225, 0.4)",
-            borderRadius: "8px",
-            color: interestsCheck
-              ? isDarkMode
-                ? "#e8e6e3"
-                : "#1e293b"
-              : isDarkMode
-              ? "rgba(232, 230, 227, 0.5)"
-              : "rgba(30, 41, 59, 0.5)",
-            fontSize: window.innerWidth < 480 ? "13px" : "14px", // Smaller font on mobile
-            outline: "none",
-            transition: "all 0.2s ease",
-            boxSizing: "border-box", // Include padding and border in width calculation
-          }}
-          onFocus={(e) => {
-            if (interestsCheck) {
-              e.target.style.border = isDarkMode
-                ? "1px solid rgba(160, 163, 189, 0.5)"
-                : "1px solid rgba(203, 213, 225, 0.6)";
-              e.target.style.background = isDarkMode
-                ? "rgba(55, 65, 81, 0.9)"
-                : "rgba(255, 255, 255, 1)";
-            }
-          }}
-          onBlur={(e) => {
-            e.target.style.border = isDarkMode
-              ? "1px solid rgba(160, 163, 189, 0.3)"
-              : "1px solid rgba(203, 213, 225, 0.4)";
-            e.target.style.background = interestsCheck
-              ? isDarkMode
-                ? "rgba(55, 65, 81, 0.8)"
-                : "rgba(255, 255, 255, 0.9)"
-              : isDarkMode
-              ? "rgba(55, 65, 81, 0.4)"
-              : "rgba(248, 250, 252, 0.5)";
-          }}
-        />
+        {isMobile ? (
+          // Mobile layout: input and button in a row
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "stretch",
+            }}
+          >
+            <input
+              disabled={!interestsCheck}
+              onChange={(e) => setInterestsInString(e.target.value)}
+              value={interestsInString || ""}
+              placeholder="Add interests (e.g. gaming music sports)"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                padding: "12px 16px",
+                background: interestsCheck
+                  ? isDarkMode
+                    ? "rgba(55, 65, 81, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)"
+                  : isDarkMode
+                  ? "rgba(55, 65, 81, 0.4)"
+                  : "rgba(248, 250, 252, 0.5)",
+                border: isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.3)"
+                  : "1px solid rgba(203, 213, 225, 0.4)",
+                borderRadius: "8px",
+                color: interestsCheck
+                  ? isDarkMode
+                    ? "#e8e6e3"
+                    : "#1e293b"
+                  : isDarkMode
+                  ? "rgba(232, 230, 227, 0.5)"
+                  : "rgba(30, 41, 59, 0.5)",
+                fontSize: "14px",
+                outline: "none",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => {
+                if (interestsCheck) {
+                  e.target.style.border = isDarkMode
+                    ? "1px solid rgba(160, 163, 189, 0.5)"
+                    : "1px solid rgba(203, 213, 225, 0.6)";
+                  e.target.style.background = isDarkMode
+                    ? "rgba(55, 65, 81, 0.9)"
+                    : "rgba(255, 255, 255, 1)";
+                }
+              }}
+              onBlur={(e) => {
+                e.target.style.border = isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.3)"
+                  : "1px solid rgba(203, 213, 225, 0.4)";
+                e.target.style.background = interestsCheck
+                  ? isDarkMode
+                    ? "rgba(55, 65, 81, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)"
+                  : isDarkMode
+                  ? "rgba(55, 65, 81, 0.4)"
+                  : "rgba(248, 250, 252, 0.5)";
+              }}
+            />
 
-        <button
-          onClick={saveInterests}
-          disabled={!interestsCheck}
-          style={{
-            padding: window.innerWidth < 480 ? "10px 16px" : "12px 20px", // Reduced padding on mobile
-            background: interestsCheck
-              ? isDarkMode
-                ? "rgba(160, 163, 189, 0.8)"
-                : "rgba(203, 213, 225, 0.8)"
-              : isDarkMode
-              ? "rgba(160, 163, 189, 0.3)"
-              : "rgba(203, 213, 225, 0.3)",
-            border: isDarkMode
-              ? "1px solid rgba(160, 163, 189, 0.4)"
-              : "1px solid rgba(203, 213, 225, 0.5)",
-            borderRadius: "8px",
-            color: interestsCheck
-              ? isDarkMode
-                ? "#1e293b"
-                : "#1e293b"
-              : isDarkMode
-              ? "rgba(30, 41, 59, 0.5)"
-              : "rgba(30, 41, 59, 0.5)",
-            fontSize: window.innerWidth < 480 ? "13px" : "14px", // Smaller font on mobile
-            fontWeight: "500",
-            cursor: interestsCheck ? "pointer" : "not-allowed",
-            transition: "all 0.2s ease",
-            minWidth: window.innerWidth < 480 ? "50px" : "60px", // Smaller min-width on mobile
-            boxSizing: "border-box",
-            flexShrink: 0, // Prevent button from shrinking
-          }}
-          onMouseOver={(e) => {
-            if (interestsCheck) {
-              e.target.style.background = isDarkMode
-                ? "rgba(160, 163, 189, 0.9)"
-                : "rgba(203, 213, 225, 0.9)";
-            }
-          }}
-          onMouseOut={(e) => {
-            e.target.style.background = interestsCheck
-              ? isDarkMode
-                ? "rgba(160, 163, 189, 0.8)"
-                : "rgba(203, 213, 225, 0.8)"
-              : isDarkMode
-              ? "rgba(160, 163, 189, 0.3)"
-              : "rgba(203, 213, 225, 0.3)";
-          }}
-        >
-          Save
-        </button>
+            <button
+              onClick={saveInterests}
+              disabled={!interestsCheck || interestsInString.trim() === ""}
+              style={{
+                padding: "12px 20px",
+                background: interestsCheck
+                  ? isDarkMode
+                    ? "rgba(160, 163, 189, 0.8)"
+                    : "rgba(203, 213, 225, 0.8)"
+                  : isDarkMode
+                  ? "rgba(160, 163, 189, 0.3)"
+                  : "rgba(203, 213, 225, 0.3)",
+                border: isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.4)"
+                  : "1px solid rgba(203, 213, 225, 0.5)",
+                borderRadius: "8px",
+                color: interestsCheck
+                  ? isDarkMode
+                    ? "#1e293b"
+                    : "#1e293b"
+                  : isDarkMode
+                  ? "rgba(30, 41, 59, 0.5)"
+                  : "rgba(30, 41, 59, 0.5)",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: interestsCheck ? "pointer" : "not-allowed",
+                transition: "all 0.2s ease",
+                minWidth: "70px",
+                boxSizing: "border-box",
+                flexShrink: 0,
+              }}
+              onMouseOver={(e) => {
+                if (interestsCheck) {
+                  e.target.style.background = isDarkMode
+                    ? "rgba(160, 163, 189, 0.9)"
+                    : "rgba(203, 213, 225, 0.9)";
+                }
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = interestsCheck
+                  ? isDarkMode
+                    ? "rgba(160, 163, 189, 0.8)"
+                    : "rgba(203, 213, 225, 0.8)"
+                  : isDarkMode
+                  ? "rgba(160, 163, 189, 0.3)"
+                  : "rgba(203, 213, 225, 0.3)";
+              }}
+            >
+              Add
+            </button>
+          </div>
+        ) : (
+          // Desktop layout: original horizontal layout
+          <>
+            <input
+              disabled={!interestsCheck}
+              onChange={(e) => setInterestsInString(e.target.value)}
+              value={interestsInString || ""}
+              placeholder="Add interests separated by spaces (e.g. gaming music sports)"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                width: "100%",
+                padding: "12px 16px",
+                background: interestsCheck
+                  ? isDarkMode
+                    ? "rgba(55, 65, 81, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)"
+                  : isDarkMode
+                  ? "rgba(55, 65, 81, 0.4)"
+                  : "rgba(248, 250, 252, 0.5)",
+                border: isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.3)"
+                  : "1px solid rgba(203, 213, 225, 0.4)",
+                borderRadius: "8px",
+                color: interestsCheck
+                  ? isDarkMode
+                    ? "#e8e6e3"
+                    : "#1e293b"
+                  : isDarkMode
+                  ? "rgba(232, 230, 227, 0.5)"
+                  : "rgba(30, 41, 59, 0.5)",
+                fontSize: "14px",
+                outline: "none",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => {
+                if (interestsCheck) {
+                  e.target.style.border = isDarkMode
+                    ? "1px solid rgba(160, 163, 189, 0.5)"
+                    : "1px solid rgba(203, 213, 225, 0.6)";
+                  e.target.style.background = isDarkMode
+                    ? "rgba(55, 65, 81, 0.9)"
+                    : "rgba(255, 255, 255, 1)";
+                }
+              }}
+              onBlur={(e) => {
+                e.target.style.border = isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.3)"
+                  : "1px solid rgba(203, 213, 225, 0.4)";
+                e.target.style.background = interestsCheck
+                  ? isDarkMode
+                    ? "rgba(55, 65, 81, 0.8)"
+                    : "rgba(255, 255, 255, 0.9)"
+                  : isDarkMode
+                  ? "rgba(55, 65, 81, 0.4)"
+                  : "rgba(248, 250, 252, 0.5)";
+              }}
+            />
+
+            <button
+              onClick={saveInterests}
+              disabled={!interestsCheck}
+              style={{
+                padding: "12px 20px",
+                background: interestsCheck
+                  ? isDarkMode
+                    ? "rgba(160, 163, 189, 0.8)"
+                    : "rgba(203, 213, 225, 0.8)"
+                  : isDarkMode
+                  ? "rgba(160, 163, 189, 0.3)"
+                  : "rgba(203, 213, 225, 0.3)",
+                border: isDarkMode
+                  ? "1px solid rgba(160, 163, 189, 0.4)"
+                  : "1px solid rgba(203, 213, 225, 0.5)",
+                borderRadius: "8px",
+                color: interestsCheck
+                  ? isDarkMode
+                    ? "#1e293b"
+                    : "#1e293b"
+                  : isDarkMode
+                  ? "rgba(30, 41, 59, 0.5)"
+                  : "rgba(30, 41, 59, 0.5)",
+                fontSize: "14px",
+                fontWeight: "500",
+                cursor: interestsCheck ? "pointer" : "not-allowed",
+                transition: "all 0.2s ease",
+                minWidth: "60px",
+                boxSizing: "border-box",
+                flexShrink: 0,
+              }}
+              onMouseOver={(e) => {
+                if (interestsCheck) {
+                  e.target.style.background = isDarkMode
+                    ? "rgba(160, 163, 189, 0.9)"
+                    : "rgba(203, 213, 225, 0.9)";
+                }
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = interestsCheck
+                  ? isDarkMode
+                    ? "rgba(160, 163, 189, 0.8)"
+                    : "rgba(203, 213, 225, 0.8)"
+                  : isDarkMode
+                  ? "rgba(160, 163, 189, 0.3)"
+                  : "rgba(203, 213, 225, 0.3)";
+              }}
+            >
+              Add Interest
+            </button>
+          </>
+        )}
       </div>
 
       {interestsCheck && interestsInArray.length > 0 && (
@@ -249,9 +429,43 @@ export default function InterestBox({ socket }) {
                   color: isDarkMode ? "#e8e6e3" : "#1e293b",
                   fontSize: "12px",
                   fontWeight: "400",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  position: "relative",
                 }}
               >
                 {interest}
+                <button
+                  onClick={() => removeInterest(index)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: isDarkMode ? "#e8e6e3" : "#1e293b",
+                    cursor: "pointer",
+                    padding: "0",
+                    margin: "0",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    lineHeight: "1",
+                    opacity: "0.6",
+                    transition: "opacity 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "14px",
+                    height: "14px",
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.opacity = "1";
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.opacity = "0.6";
+                  }}
+                  title="Remove interest"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>

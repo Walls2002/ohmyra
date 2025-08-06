@@ -8,7 +8,7 @@ import {
   IntroMessage,
   FindingUserMessage,
   ConnectedUserMessage,
-  DicsonnectedUserMessage,
+  DisconnectedUserMessage,
   TypingUserMessage,
 } from "../utils/MessageNotifs";
 import ConversationList from "../utils/ConversationList";
@@ -109,7 +109,9 @@ function ChatBox({ socket }) {
     setConnect(false);
     handleClose();
     setMessage("");
-    setDisconnectedUser(true);
+    setDisconnectedUser(false);
+    setFirstMessage(true);
+
     setFindingUser(false);
   };
 
@@ -195,6 +197,206 @@ function ChatBox({ socket }) {
       socket.on("typing", handleTypingReceive);
     };
   }, [connect, socket, findingUser, socketIdArray, socketIds]);
+
+  const activeButton = () => {
+    if (connect) {
+      return (
+        <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+          <Modal
+            centered
+            show={show}
+            onHide={handleClose}
+            contentClassName="border-0"
+            style={{
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <Modal.Header
+              closeButton
+              style={{
+                background: isDarkMode
+                  ? "rgba(45, 55, 72, 0.95)"
+                  : "rgba(248, 250, 252, 0.95)",
+                border: "none",
+                borderRadius: "8px 8px 0 0",
+                color: isDarkMode ? "#e8e6e3" : "#1e293b",
+              }}
+            >
+              <Modal.Title
+                style={{
+                  color: isDarkMode ? "#e8e6e3" : "#1e293b",
+                  fontWeight: "500",
+                  fontSize: "18px",
+                }}
+              >
+                End Chat
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body
+              style={{
+                background: isDarkMode
+                  ? "rgba(45, 55, 72, 0.95)"
+                  : "rgba(248, 250, 252, 0.95)",
+                color: isDarkMode ? "#a0a3bd" : "#64748b",
+                fontSize: "14px",
+                padding: "20px",
+              }}
+            >
+              Are you sure you want to end the chat? This action will disconnect
+              you from the conversation.
+            </Modal.Body>
+            <Modal.Footer
+              style={{
+                background: isDarkMode
+                  ? "rgba(45, 55, 72, 0.95)"
+                  : "rgba(248, 250, 252, 0.95)",
+                border: "none",
+                borderRadius: "0 0 8px 8px",
+                padding: "16px 20px",
+              }}
+            >
+              <Button
+                variant="secondary"
+                onClick={handleClose}
+                style={{
+                  background: isDarkMode
+                    ? "rgba(160, 163, 189, 0.1)"
+                    : "rgba(100, 116, 139, 0.1)",
+                  border: isDarkMode
+                    ? "1px solid rgba(160, 163, 189, 0.2)"
+                    : "1px solid rgba(100, 116, 139, 0.2)",
+                  color: isDarkMode ? "#e8e6e3" : "#1e293b",
+                  borderRadius: "6px",
+                  padding: "8px 16px",
+                  fontWeight: "400",
+                  fontSize: "14px",
+                }}
+              >
+                Close
+              </Button>
+
+              <Button
+                variant="danger"
+                onClick={disconnectChat}
+                style={{
+                  background: "#dc3545",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "8px 16px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                End Chat
+              </Button>
+            </Modal.Footer>
+          </Modal>
+          <div style={{ display: "flex", gap: "4px" }}>
+            <Button
+              onClick={handleShow}
+              variant="outline-danger"
+              className="action-button"
+              style={{
+                borderRadius: "6px",
+                background: "#dc3545",
+                border: "none",
+                color: "#ffffff",
+                padding: "10px 12px",
+                fontWeight: "500",
+                fontSize: "13px",
+                transition: "all 0.2s ease",
+                minWidth: "auto",
+              }}
+              onMouseOver={(e) => {
+                e.target.style.opacity = "0.9";
+              }}
+              onMouseOut={(e) => {
+                e.target.style.opacity = "1";
+              }}
+            >
+              End
+            </Button>
+            <Button
+              onClick={sendMessage}
+              variant="light"
+              className="action-button"
+              style={{
+                borderRadius: "6px",
+                background: "#4a5568",
+                border: "none",
+                color: "#ffffff",
+                padding: "10px 12px",
+                fontWeight: "500",
+                fontSize: "13px",
+                transition: "all 0.2s ease",
+                minWidth: "auto",
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = "#2d3748";
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = "#4a5568";
+              }}
+            >
+              Send
+            </Button>
+          </div>
+        </span>
+      );
+    }
+
+    if (findingUser) {
+      return (
+        <Button
+          onClick={disconnectWhileWaiting}
+          variant="danger"
+          className="action-button"
+          style={{
+            borderRadius: "6px",
+            background: "#dc3545",
+            border: "none",
+            color: "#ffffff",
+            padding: "10px 16px",
+            fontWeight: "500",
+            fontSize: "13px",
+            opacity: findingUser ? 0.7 : 1,
+            flexShrink: 0,
+            width: "100%",
+          }}
+        >
+          Cancel
+        </Button>
+      );
+    }
+    return (
+      <Button
+        disabled={findingUser}
+        onClick={findChat}
+        variant="dark"
+        className="action-button"
+        style={{
+          borderRadius: "6px",
+          background: "#4a5568",
+          border: "none",
+          color: "#ffffff",
+          padding: "10px 16px",
+          fontWeight: "500",
+          fontSize: "13px",
+          transition: "all 0.2s ease",
+          flexShrink: 0,
+          width: "100%",
+        }}
+        onMouseOver={(e) => {
+          e.target.style.background = "#2d3748";
+        }}
+        onMouseOut={(e) => {
+          e.target.style.background = "#4a5568";
+        }}
+      >
+        Start Chat 💬
+      </Button>
+    );
+  };
 
   return (
     <Container>
@@ -355,7 +557,7 @@ function ChatBox({ socket }) {
 
           {isTyping && <TypingUserMessage isTyping={isTyping} />}
           {disconnectedUser ? (
-            <DicsonnectedUserMessage socket={socket} />
+            <DisconnectedUserMessage socket={socket} messages={messageList} />
           ) : (
             <></>
           )}
@@ -390,6 +592,7 @@ function ChatBox({ socket }) {
               fontWeight: "400",
               transition: "all 0.2s ease",
               marginRight: "8px",
+              display: connect ? "block" : "none",
             }}
             value={message}
             onChange={handleTyping}
@@ -413,200 +616,7 @@ function ChatBox({ socket }) {
                 : "rgba(255, 255, 255, 0.9)";
             }}
           />
-          {connect ? (
-            <span
-              style={{ display: "flex", alignItems: "center", flexShrink: 0 }}
-            >
-              <Modal
-                centered
-                show={show}
-                onHide={handleClose}
-                contentClassName="border-0"
-                style={{
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                <Modal.Header
-                  closeButton
-                  style={{
-                    background: isDarkMode
-                      ? "rgba(45, 55, 72, 0.95)"
-                      : "rgba(248, 250, 252, 0.95)",
-                    border: "none",
-                    borderRadius: "8px 8px 0 0",
-                    color: isDarkMode ? "#e8e6e3" : "#1e293b",
-                  }}
-                >
-                  <Modal.Title
-                    style={{
-                      color: isDarkMode ? "#e8e6e3" : "#1e293b",
-                      fontWeight: "500",
-                      fontSize: "18px",
-                    }}
-                  >
-                    End Chat
-                  </Modal.Title>
-                </Modal.Header>
-                <Modal.Body
-                  style={{
-                    background: isDarkMode
-                      ? "rgba(45, 55, 72, 0.95)"
-                      : "rgba(248, 250, 252, 0.95)",
-                    color: isDarkMode ? "#a0a3bd" : "#64748b",
-                    fontSize: "14px",
-                    padding: "20px",
-                  }}
-                >
-                  Are you sure you want to end the chat? This action will
-                  disconnect you from the conversation.
-                </Modal.Body>
-                <Modal.Footer
-                  style={{
-                    background: isDarkMode
-                      ? "rgba(45, 55, 72, 0.95)"
-                      : "rgba(248, 250, 252, 0.95)",
-                    border: "none",
-                    borderRadius: "0 0 8px 8px",
-                    padding: "16px 20px",
-                  }}
-                >
-                  <Button
-                    variant="secondary"
-                    onClick={handleClose}
-                    style={{
-                      background: isDarkMode
-                        ? "rgba(160, 163, 189, 0.1)"
-                        : "rgba(100, 116, 139, 0.1)",
-                      border: isDarkMode
-                        ? "1px solid rgba(160, 163, 189, 0.2)"
-                        : "1px solid rgba(100, 116, 139, 0.2)",
-                      color: isDarkMode ? "#e8e6e3" : "#1e293b",
-                      borderRadius: "6px",
-                      padding: "8px 16px",
-                      fontWeight: "400",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Close
-                  </Button>
-
-                  <Button
-                    variant="danger"
-                    onClick={disconnectChat}
-                    style={{
-                      background: "#dc3545",
-                      border: "none",
-                      borderRadius: "6px",
-                      padding: "8px 16px",
-                      fontWeight: "500",
-                      fontSize: "14px",
-                    }}
-                  >
-                    End Chat
-                  </Button>
-                </Modal.Footer>
-              </Modal>
-              <div style={{ display: "flex", gap: "4px" }}>
-                <Button
-                  onClick={handleShow}
-                  variant="outline-danger"
-                  className="action-button"
-                  style={{
-                    borderRadius: "6px",
-                    background: "#dc3545",
-                    border: "none",
-                    color: "#ffffff",
-                    padding: "10px 12px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    transition: "all 0.2s ease",
-                    minWidth: "auto",
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.opacity = "0.9";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.opacity = "1";
-                  }}
-                >
-                  End
-                </Button>
-                <Button
-                  onClick={sendMessage}
-                  variant="light"
-                  className="action-button"
-                  style={{
-                    borderRadius: "6px",
-                    background: "#4a5568",
-                    border: "none",
-                    color: "#ffffff",
-                    padding: "10px 12px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    transition: "all 0.2s ease",
-                    minWidth: "auto",
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.background = "#2d3748";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.background = "#4a5568";
-                  }}
-                >
-                  Send
-                </Button>
-              </div>
-            </span>
-          ) : (
-            <>
-              {findingUser ? (
-                <Button
-                  onClick={cancelFinding}
-                  variant="danger"
-                  className="action-button"
-                  style={{
-                    borderRadius: "6px",
-                    background: "#dc3545",
-                    border: "none",
-                    color: "#ffffff",
-                    padding: "10px 16px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    opacity: findingUser ? 0.7 : 1,
-                    flexShrink: 0,
-                  }}
-                >
-                  Cancel
-                </Button>
-              ) : (
-                <Button
-                  disabled={findingUser}
-                  onClick={findChat}
-                  variant="dark"
-                  className="action-button"
-                  style={{
-                    borderRadius: "6px",
-                    background: "#4a5568",
-                    border: "none",
-                    color: "#ffffff",
-                    padding: "10px 16px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    transition: "all 0.2s ease",
-                    flexShrink: 0,
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.background = "#2d3748";
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.background = "#4a5568";
-                  }}
-                >
-                  Chat
-                </Button>
-              )}
-            </>
-          )}
+          {activeButton()}
         </div>
       </div>
     </Container>
