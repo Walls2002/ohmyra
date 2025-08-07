@@ -364,7 +364,7 @@ function About() {
                         e.target.style.boxShadow = "0 5px 15px rgba(0,0,0,0.2)";
                       }}
                     >
-                      🔗 View Portfolio
+                      View Portfolio
                     </Button>
                     <Button
                       href="https://github.com/Walls2002"
@@ -389,11 +389,6 @@ function About() {
                         e.target.style.transform = "translateY(0)";
                       }}
                     >
-                      <img
-                        src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-                        alt="GitHub"
-                        style={{ width: "20px", height: "20px" }}
-                      />{" "}
                       GitHub Profile
                     </Button>
                   </div>

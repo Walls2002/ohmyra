@@ -1,11 +1,13 @@
 import InterestBox from "../components/InterestBox";
 import { useTheme } from "../contexts/ThemeContext";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 import { useState } from "react";
 
 export function IntroMessage({ socket }) {
   const { isDarkMode } = useTheme();
+  const navigate = useNavigate();
 
   return (
     <div
@@ -59,6 +61,7 @@ export function IntroMessage({ socket }) {
         <InterestBox socket={socket} />
         <button
           className="mt-2"
+          onClick={() => navigate("/saved-conversations")}
           style={{
             background: isDarkMode ? "#e8e6e3" : "#1e293b",
             color: isDarkMode ? "#1e293b" : "#e8e6e3",
@@ -246,6 +249,7 @@ export function ConnectedUserMessage({ interest }) {
 
 export function DisconnectedUserMessage({ socket, messages }) {
   const { isDarkMode } = useTheme();
+  const navigate = useNavigate();
   const [savedMessages, setSavedMessages] = useState(() => {
     const storedMessages = localStorage.getItem("savedMessages");
     return storedMessages && storedMessages !== "null"
@@ -274,8 +278,9 @@ export function DisconnectedUserMessage({ socket, messages }) {
       timestamp: new Date().toISOString(),
     };
 
-    setSavedMessages([...savedMessages, conversationData]);
-    localStorage.setItem("savedMessages", JSON.stringify(savedMessages));
+    const updatedMessages = [...savedMessages, conversationData];
+    setSavedMessages(updatedMessages);
+    localStorage.setItem("savedMessages", JSON.stringify(updatedMessages));
     toast.success("Conversation saved successfully!", {
       duration: 3000,
     });
@@ -373,22 +378,7 @@ export function DisconnectedUserMessage({ socket, messages }) {
           </button>
 
           <button
-            onClick={() => {
-              if (savedMessages.length === 0) {
-                toast.error("No saved messages found!", {
-                  duration: 3000,
-                });
-                return;
-              }
-              // You can implement a modal or navigation to view saved messages
-              console.log("Saved messages:", savedMessages);
-              toast.success(
-                `Found ${savedMessages.length} saved conversation(s)!`,
-                {
-                  duration: 3000,
-                }
-              );
-            }}
+            onClick={() => navigate("/saved-conversations")}
             style={{
               background: isDarkMode ? "#1e40af" : "#3b82f6",
               color: "#ffffff",

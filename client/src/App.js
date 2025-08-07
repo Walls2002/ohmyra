@@ -2,6 +2,7 @@ import Chat from "./pages/Chat";
 import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import SavedConversations from "./components/SavedConversations";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
@@ -18,6 +19,10 @@ function App({ socket }) {
             <Route path="home" element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="chat" element={<Chat socket={socket} />} />
+            <Route
+              path="saved-conversations"
+              element={<SavedConversations />}
+            />
             <Route path="privacy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<TermsOfService />} />
           </Route>
