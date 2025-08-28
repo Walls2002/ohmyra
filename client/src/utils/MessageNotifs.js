@@ -343,7 +343,7 @@ export function DisconnectedUserMessage({ socket, messages }) {
           <button
             onClick={onSaveConversation}
             style={{
-              background: isDarkMode ? "#065f46" : "#10b981",
+              background: isDarkMode ? "#91a608ff" : "#526e0cff",
               color: "#ffffff",
               border: "none",
               borderRadius: "8px",

@@ -41,6 +41,8 @@ let interestQueues = {};
 io.on("connection", (socket) => {
   console.log(`New User : ${socket.id}`);
   allSocketIds.push(socket.id);
+  // Immediately broadcast updated online user list when someone connects
+  io.emit("total_online_user", { total_user: allSocketIds });
 
   socket.on("request_total_online_user", () => {
     io.emit("total_online_user", { total_user: allSocketIds });
@@ -280,6 +282,9 @@ io.on("connection", (socket) => {
 
     waitingUsers = waitingUsers.filter((user) => user.id !== socket.id);
     allSocketIds = allSocketIds.filter((user) => user !== socket.id);
+
+    // Broadcast updated online user list after a disconnect
+    io.emit("total_online_user", { total_user: allSocketIds });
 
     socket.on("request_total_online_user", () => {
       io.emit("total_online_user", { total_user: allSocketIds });

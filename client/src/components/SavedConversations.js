@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Card, Button, Modal, Badge } from "react-bootstrap";
 import Title from "../components/Title";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
@@ -29,6 +31,150 @@ function SavedConversations() {
   const handleDeleteConversation = (index) => {
     setConversationToDelete(index);
     setShowDeleteModal(true);
+  };
+
+  const handleSavePDF = async (conversation) => {
+    // Create a temporary container that mirrors the modal content
+    const container = document.createElement("div");
+    container.style.width = "800px";
+    container.style.padding = "20px";
+    container.style.background = isDarkMode ? "#2d3748" : "#ffffff";
+    container.style.color = isDarkMode ? "#e8e6e3" : "#1e293b";
+    container.style.fontFamily = "Arial, sans-serif";
+
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "16px";
+
+    // Add Ohmyra logo to header (use white logo for dark mode)
+    const logo = document.createElement("img");
+    logo.src = isDarkMode ? "/ohmyra_logo_wht.png" : "/ohmyra_logo.png";
+    logo.alt = "Ohmyra";
+    logo.style.width = "140px";
+    logo.style.height = "auto";
+    logo.style.display = "block";
+    logo.style.margin = "0 auto 8px auto";
+    header.appendChild(logo);
+
+    const title = document.createElement("div");
+    title.textContent = `Conversation - ${new Date(
+      conversation.timestamp
+    ).toLocaleString()}`;
+    title.style.fontWeight = "600";
+    title.style.marginBottom = "6px";
+    header.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.textContent = `${conversation.messages.length} messages`;
+    meta.style.fontSize = "12px";
+    meta.style.color = isDarkMode ? "#a0a3bd" : "#64748b";
+    header.appendChild(meta);
+    container.appendChild(header);
+
+    const messagesWrapper = document.createElement("div");
+    messagesWrapper.style.display = "flex";
+    messagesWrapper.style.flexDirection = "column";
+    messagesWrapper.style.gap = "12px";
+
+    conversation.messages.forEach((msg) => {
+      const isUserMessage = msg.user === "owner";
+      const msgDiv = document.createElement("div");
+      msgDiv.style.alignSelf = isUserMessage ? "flex-end" : "flex-start";
+      msgDiv.style.maxWidth = "520px";
+      msgDiv.style.padding = "12px 16px";
+      msgDiv.style.borderRadius = "10px";
+      msgDiv.style.background = isUserMessage
+        ? isDarkMode
+          ? "#e8e6e3"
+          : "#1e293b"
+        : isDarkMode
+        ? "rgba(160,163,189,0.1)"
+        : "rgba(100,116,139,0.1)";
+      msgDiv.style.color = isUserMessage
+        ? isDarkMode
+          ? "#1e293b"
+          : "#e8e6e3"
+        : isDarkMode
+        ? "#e8e6e3"
+        : "#1e293b";
+      msgDiv.style.wordBreak = "break-word";
+
+      const text = document.createElement("div");
+      text.textContent = msg.message;
+      text.style.fontSize = "14px";
+      text.style.marginBottom = "6px";
+      msgDiv.appendChild(text);
+
+      const date = document.createElement("div");
+      date.textContent = msg.date;
+      date.style.fontSize = "11px";
+      date.style.color = isDarkMode ? "#a0a3bd" : "#64748b";
+      msgDiv.appendChild(date);
+
+      messagesWrapper.appendChild(msgDiv);
+    });
+
+    container.appendChild(messagesWrapper);
+    document.body.appendChild(container);
+
+    try {
+      const canvas = await html2canvas(container, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate the image dimensions to fit the PDF while preserving aspect ratio
+      const imgWidth = pageWidth - 40; // margin
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let position = 20;
+      if (imgHeight < pageHeight) {
+        pdf.addImage(imgData, "PNG", 20, position, imgWidth, imgHeight);
+      } else {
+        // If content taller than a page, split into multiple pages
+        let remainingHeight = canvas.height;
+        let pageCanvasHeight = Math.floor(
+          (canvas.width * pageHeight) / imgWidth
+        );
+        let y = 0;
+        while (remainingHeight > 0) {
+          const pageCanvas = document.createElement("canvas");
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.min(pageCanvasHeight, remainingHeight);
+          const ctx = pageCanvas.getContext("2d");
+          ctx.drawImage(
+            canvas,
+            0,
+            y,
+            canvas.width,
+            pageCanvas.height,
+            0,
+            0,
+            canvas.width,
+            pageCanvas.height
+          );
+          const pageImg = pageCanvas.toDataURL("image/png");
+          if (y > 0) pdf.addPage();
+          pdf.addImage(
+            pageImg,
+            "PNG",
+            20,
+            20,
+            imgWidth,
+            (pageCanvas.height * imgWidth) / canvas.width
+          );
+          y += pageCanvas.height;
+          remainingHeight -= pageCanvas.height;
+        }
+      }
+
+      pdf.save(`conversation-${conversation.timestamp}.pdf`);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+    } finally {
+      document.body.removeChild(container);
+    }
   };
 
   const confirmDelete = () => {
@@ -63,7 +209,7 @@ function SavedConversations() {
   };
 
   const renderMessage = (msg, index, currentUserId) => {
-    const isUserMessage = currentUserId && currentUserId === msg.author;
+    const isUserMessage = msg.user === "owner";
 
     return (
       <div
@@ -373,6 +519,29 @@ function SavedConversations() {
                           }}
                         >
                           View
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleSavePDF(conversation)}
+                          style={{
+                            background: "transparent",
+                            border: "1px solid #2b6cb0",
+                            borderRadius: "6px",
+                            padding: "6px 12px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            color: "#2b6cb0",
+                          }}
+                          onMouseOver={(e) => {
+                            e.target.style.background = "#2b6cb0";
+                            e.target.style.color = "#ffffff";
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.background = "transparent";
+                            e.target.style.color = "#2b6cb0";
+                          }}
+                        >
+                          Save PDF
                         </Button>
                         <Button
                           size="sm"

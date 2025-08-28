@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 
 export default function NavBar({ socket }) {
-  const [totalUser, SetTotalUser] = useState([]);
+  const [totalUser, setTotalUser] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
 
@@ -21,21 +21,42 @@ export default function NavBar({ socket }) {
   // });
 
   useEffect(() => {
+    if (!socket) return; // guard if socket isn't passed yet
+
     const getTotalUser = (data) => {
-      SetTotalUser(data.total_user);
+      console.debug("received total_online_user ->", data);
+      // server sends an array of socket ids; convert to numeric count
+      const list = data && data.total_user ? data.total_user : [];
+      setTotalUser(Array.isArray(list) ? list.length : Number(list) || 0);
+    };
+
+    const onConnect = () => {
+      console.debug("socket connected", socket.id);
+      // request a fresh count on connect
+      if (socket && socket.connected) socket.emit("request_total_online_user");
+    };
+
+    const onConnectError = (err) => {
+      console.error("socket connect error", err);
     };
 
     socket.on("total_online_user", getTotalUser);
+    socket.on("connect", onConnect);
+    socket.on("connect_error", onConnectError);
 
-    // Emit a request every second
+    // Keep a gentle polling fallback in case of missed events
     const interval = setInterval(() => {
-      socket.emit("request_total_online_user"); // Emit a request to the server for the latest data
+      if (socket && socket.connected) socket.emit("request_total_online_user");
     }, 5000);
-    // Emit a request to the server for the latest data
+
+    // Request initial value immediately
+    if (socket && socket.connected) socket.emit("request_total_online_user");
 
     return () => {
       clearInterval(interval);
       socket.off("total_online_user", getTotalUser);
+      socket.off("connect", onConnect);
+      socket.off("connect_error", onConnectError);
     };
   }, [socket]);
 
@@ -161,7 +182,7 @@ export default function NavBar({ socket }) {
                   animation: "pulse 2s infinite",
                 }}
               ></span>
-              {totalUser.length} Online
+              {totalUser} Online
             </Badge>
           </div>
 
@@ -334,7 +355,7 @@ export default function NavBar({ socket }) {
                   animation: "pulse 2s infinite",
                 }}
               ></span>
-              {totalUser.length} Users Online
+              {totalUser} Users Online
             </Badge>
           </div>
         </Navbar.Collapse>

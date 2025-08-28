@@ -79,6 +79,8 @@ function ChatBox({ socket }) {
     if (message.trim() !== "") {
       const messageData = {
         author: socket.id,
+        user: "owner",
+
         message,
         date:
           dateToday.toDateString() +
@@ -131,9 +133,19 @@ function ChatBox({ socket }) {
 
   useEffect(() => {
     const handleMessageReceive = (data) => {
-      setMessageList((list) => [...list, data]);
-      setTimeout(scrollToBottom, 100);
-      setIsTyping("");
+      setMessageList((list) => {
+        if (data.author === socket.id) {
+          data.user = "owner";
+        } else {
+          data.user = "stranger";
+        }
+
+        const updatedList = [...list, data];
+        setTimeout(scrollToBottom, 100);
+        setIsTyping("");
+        console.log("Messages:", updatedList);
+        return updatedList;
+      });
     };
     const handleDisconnect = (data) => {
       setConnect(data.conn);
@@ -144,6 +156,7 @@ function ChatBox({ socket }) {
     };
     const handleTypingReceive = (data) => {
       setIsTyping("Stranger is typing...");
+      setTimeout(scrollToBottom, 100);
       setTimeout(() => {
         setIsTyping("");
       }, 4000);
@@ -374,7 +387,7 @@ function ChatBox({ socket }) {
         className="action-button"
         style={{
           borderRadius: "6px",
-          background: "#4a5568",
+          background: "#10b981ff",
           border: "none",
           color: "#ffffff",
           padding: "10px 16px",
@@ -383,12 +396,6 @@ function ChatBox({ socket }) {
           transition: "all 0.2s ease",
           flexShrink: 0,
           width: "100%",
-        }}
-        onMouseOver={(e) => {
-          e.target.style.background = "#2d3748";
-        }}
-        onMouseOut={(e) => {
-          e.target.style.background = "#4a5568";
         }}
       >
         Start Chat 💬
